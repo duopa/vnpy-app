@@ -1,0 +1,12 @@
+[
+
+    {
+        "name": "MACD_RB88",
+        "className": "Strategy_MACD",
+        "vtSymbol": "rb1710",
+        "symbol": "rb1710",
+        "shortSymbol":"RB",
+        "minDiff":1,
+        "inputSS":1
+    }
+]
