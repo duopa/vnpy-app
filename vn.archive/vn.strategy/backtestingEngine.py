@@ -187,7 +187,7 @@ class BacktestingEngine(object):
         self.dictOrder[str(self.orderRef)] = order
         
         return str(self.orderRef)
-    
+
     #----------------------------------------------------------------------
     def cancelOrder(self, instrumentid, exchangeid, orderref, frontid, sessionid):
         """回测撤单"""

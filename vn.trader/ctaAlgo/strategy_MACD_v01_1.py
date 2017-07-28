@@ -307,6 +307,8 @@ class Strategy_MACD_01(CtaTemplate):
 
         # 如果未持仓，检查是否符合开仓逻辑
         if self.position.pos == 0:
+            #TODO 1, 此处仅仅考虑 未持仓 ，是否需要考虑 持仓数量是否达到限制？
+
             # DIF快线上穿DEA慢线，15f上金叉，做多
             # 如果要macd大于2的代码and abs(self.lineM15.lineMacd[0 - idx]) > 2
             if self.lineM15.lineDif[-1 - idx] < self.lineM15.lineDea[-1 - idx] \
@@ -332,6 +334,7 @@ class Strategy_MACD_01(CtaTemplate):
 
                 # 持仓，检查是否满足平仓条件
         else:
+
             # 死叉，多单离场
             if self.lineM15.lineDif[0 - idx] < self.lineM15.lineDea[0 - idx] \
                     and abs(self.lineM15.lineMacd[0 - idx]) > 2 \
