@@ -620,6 +620,7 @@ if __name__ == '__main__':
 
     setup_logger(
         filename=u'TestLogs/{0}_{1}.log'.format(Strategy_MACD_01.className, datetime.now().strftime('%m%d_%H%M')),
-        debug=False)
+        debug=False
+    )
     # 回测螺纹
     testRbByBar()
