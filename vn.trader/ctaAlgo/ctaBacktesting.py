@@ -1653,6 +1653,7 @@ class BacktestingEngine(object):
         """输出内容"""
         print str(datetime.now()) + "\t" + content
 
+    #TODO understand this function
     ## this is where strategy runs
     def realtimeCalculate(self):
         """实时计算交易结果"""

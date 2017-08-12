@@ -1558,7 +1558,6 @@ class CtaDayBar(object):
             lastBar.low = min(lastBar.low, tick.lastPrice)
             lastBar.close = tick.lastPrice
 
-
             # 更新Bar的颜色
             if lastBar.close > lastBar.open:
                 lastBar.color = COLOR_RED

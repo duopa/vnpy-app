@@ -274,7 +274,7 @@ class Strategy_MACD_01(CtaTemplate):
 
         # 推送tick到15分钟K线
         self.lineM15.addBar(bar)
-        self.lineM60.addBar(bar)
+       #self.lineM60.addBar(bar)
 
         # 4、交易逻辑
         # 首先检查是否是实盘运行还是数据预处理阶段
@@ -315,6 +315,10 @@ class Strategy_MACD_01(CtaTemplate):
                     and self.lineM15.lineDif[0 - idx] > self.lineM15.lineDea[0 - idx] \
                     and abs(self.lineM15.lineMacd[0 - idx]) >= 2:
                 self.percentLimit=0.4
+                # add by xy 12 August 2017
+
+
+
                 self.writeCtaLog(u'{0},开仓多单{1}手,价格:{2}'.format(bar.datetime, self.position.maxPos, bar.close))
                 orderid = self.buy(price=bar.close, volume=self.position.maxPos, orderTime=self.curDateTime)
                 if orderid:
@@ -515,6 +519,14 @@ class Strategy_MACD_01(CtaTemplate):
         # 保存K线
         if not self.backtesting:
             return
+    # ----------------------------------------------------------------------
+    #add by xy 12th August 2017
+    def getAvailablePos(self):
+        capital, avail, _, _ = self.engine.getAccountInfo()
+        if avail == EMPTY_FLOAT:
+            avail = capital * self.percentLimit
+
+        pass
 
 
 def testRbByTick():
@@ -577,7 +589,8 @@ def testRbByBar():
     # 设置回测用的数据结束日期
     engine.setEndDate('20170605')
 
-    engine.setDatabase(dbName='stockcn', symbol='rb')
+    #engine.setDatabase(dbName='stockcn', symbol='rb')
+    engine.setDatabase(dbName='stockcn', symbol='RB')
 
     # 设置产品相关参数
     engine.setSlippage(0.5)  # 1跳（0.1）2跳0.2
@@ -585,7 +598,8 @@ def testRbByBar():
     engine.setSize(10)  # 合约大小
 
     settings = {}
-    settings['vtSymbol'] = 'rb'
+    #settings['vtSymbol'] = 'rb'
+    settings['vtSymbol'] = 'RB'
     settings['shortSymbol'] = 'RB'
     settings['name'] = 'MACD'
     settings['mode'] = 'bar'
