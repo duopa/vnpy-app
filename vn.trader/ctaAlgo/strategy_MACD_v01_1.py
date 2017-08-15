@@ -86,7 +86,10 @@ class Strategy_MACD_01(CtaTemplate):
         # self.position.pos持仓状态，self.position.maxPos最大持仓
 
         # 增加ctabacktesing中的仓位管理
-        self.engine = BacktestingEngine()
+        if not ctaEngine:
+            self.engine = BacktestingEngine()
+        else:
+            self.engine = ctaEngine
         # 当前资金，当前可用资金，仓位比例，仓位比例上限
         self.capital, self.available, self.percent, self.percentLimit = self.engine.getAccountInfo()
 
@@ -316,11 +319,12 @@ class Strategy_MACD_01(CtaTemplate):
                     and abs(self.lineM15.lineMacd[0 - idx]) >= 2:
                 self.percentLimit=0.4
                 # add by xy 12 August 2017
-
-
+                vol = self.getAvailablePos(bar)
+                if not vol:
+                    return
 
                 self.writeCtaLog(u'{0},开仓多单{1}手,价格:{2}'.format(bar.datetime, self.position.maxPos, bar.close))
-                orderid = self.buy(price=bar.close, volume=self.position.maxPos, orderTime=self.curDateTime)
+                orderid = self.buy(price=bar.close, volume=vol, orderTime=self.curDateTime)
                 if orderid:
                     self.lastOrderTime = self.curDateTime
                 return
@@ -330,21 +334,25 @@ class Strategy_MACD_01(CtaTemplate):
                     and self.lineM15.lineDif[0 - idx] < self.lineM15.lineDea[0 - idx] \
                     and abs(self.lineM15.lineMacd[0 - idx]) >= 2:
                 self.percentLimit=0.4
+                vol = self.getAvailablePos(bar)
+                if not vol:
+                    return
                 self.writeCtaLog(u'{0},开仓多单{1}手,价格:{2}'.format(bar.datetime, self.position.maxPos, bar.close))
-                orderid = self.short(price=bar.close, volume=self.position.maxPos, orderTime=self.curDateTime)
+                orderid = self.short(price=bar.close, volume=vol, orderTime=self.curDateTime)
                 if orderid:
                     self.lastOrderTime = self.curDateTime
                 return
 
                 # 持仓，检查是否满足平仓条件
-        else:
+        else: #持仓
 
             # 死叉，多单离场
             if self.lineM15.lineDif[0 - idx] < self.lineM15.lineDea[0 - idx] \
                     and abs(self.lineM15.lineMacd[0 - idx]) > 2 \
                     and self.position.pos > 0 and self.entrust != -1:
+
                 self.writeCtaLog(u'{0},平仓多单{1}手,价格:{2}'.format(bar.datetime, self.position.maxPos, bar.close))
-                orderid = self.sell(price=bar.close, volume=self.position.maxPos, orderTime=self.curDateTime)
+                orderid = self.sell(price=bar.close, volume=self.position.pos, orderTime=self.curDateTime)
                 if orderid:
                     self.lastOrderTime = self.curDateTime
                 return
@@ -354,7 +362,7 @@ class Strategy_MACD_01(CtaTemplate):
                     and abs(self.lineM15.lineMacd[0 - idx]) > 2 \
                     and self.position.pos < 0 and self.entrust != 1:
                 self.writeCtaLog(u'{0},平仓空单{1}手,价格:{2}'.format(bar.datetime, self.position.maxPos, bar.close))
-                orderid = self.cover(price=bar.close, volume=self.position.maxPos, orderTime=self.curDateTime)
+                orderid = self.cover(price=bar.close, volume=self.position.pos, orderTime=self.curDateTime)
                 if orderid:
                     self.lastOrderTime = self.curDateTime
                 return
@@ -521,12 +529,16 @@ class Strategy_MACD_01(CtaTemplate):
             return
     # ----------------------------------------------------------------------
     #add by xy 12th August 2017
-    def getAvailablePos(self):
+    def getAvailablePos(self, bar):
         capital, avail, _, _ = self.engine.getAccountInfo()
-        if avail == EMPTY_FLOAT:
-            avail = capital * self.percentLimit
 
-        pass
+        avail = min(avail, capital * self.percentLimit)
+        midPrice = (bar.high - bar.low) / 2 + bar.low
+        pricePerLot = self.engine.moneyPerLot(midPrice, self.vtSymbol)
+        if pricePerLot:
+           return int( avail / pricePerLot )
+        else:
+            return None
 
 
 def testRbByTick():
@@ -615,6 +627,7 @@ def testRbByBar():
     # 启用实时计算净值模式REALTIME_MODE / FINAL_MODE 回测结束时统一计算模式
     engine.calculateMode = engine.REALTIME_MODE
     engine.initCapital = 100000  # 设置期初资金
+
     engine.percentLimit = 40  # 设置资金使用上限比例(%)
     engine.barTimeInterval = 300  # bar的周期秒数，用于csv文件自动减时间
 

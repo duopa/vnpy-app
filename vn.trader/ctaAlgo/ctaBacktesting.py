@@ -50,7 +50,7 @@ class BacktestingEngine(object):
     FINAL_MODE = 'Final'  # 最后才统计交易，不适合按照百分比等开仓数量计算
 
     # ----------------------------------------------------------------------
-    def __init__(self, eventEngine=None):
+    def __init__(self, eventEngine=None, initCapital = 100000):
         """Constructor"""
 
         self.eventEngine = eventEngine
@@ -111,11 +111,6 @@ class BacktestingEngine(object):
         # csvFile相关
         self.barTimeInterval = 60  # csv文件，属于K线类型，K线的周期（秒数）,缺省是1分钟
 
-        # 费用情况
-        self.avaliable = EMPTY_FLOAT
-        self.percent = EMPTY_FLOAT
-        self.percentLimit = 30  # 投资仓位比例上限
-
         # 回测计算相关
         self.calculateMode = self.FINAL_MODE
         self.usageCompounding = False  # 是否使用简单复利 （只针对FINAL_MODE有效）
@@ -123,6 +118,11 @@ class BacktestingEngine(object):
         self.initCapital = 100000  # 期初资金
         self.capital = self.initCapital  # 资金  （相当于Balance）
         self.maxCapital = self.initCapital  # 资金最高净值
+
+        # 费用情况
+        self.avaliable = self.initCapital
+        self.percent = EMPTY_FLOAT
+        self.percentLimit = 30  # 投资仓位比例上限
 
         self.maxPnl = 0  # 最高盈利
         self.minPnl = 0  # 最大亏损
@@ -1961,6 +1961,7 @@ class BacktestingEngine(object):
                 if t.vtSymbol in BZJ_SQ:
                     occupyMoney += t.price * abs(t.volume) * self.size * BZJ_SQ[t.vtSymbol]
                     occupyLongVolume += abs(t.volume)
+
         if len(shortTrade) > 0:  # 如果未平仓的空头交易大于0
             for t in shortTrade:
                 if t.vtSymbol in BZJ_DL:
@@ -1972,6 +1973,7 @@ class BacktestingEngine(object):
                 if t.vtSymbol in BZJ_SQ:
                     occupyMoney += t.price * abs(t.volume) * self.size * BZJ_SQ[t.vtSymbol]
                     occupyLongVolume += abs(t.volume)
+
         # TODO:这里关于t.symbol的数据可能不够准确，下方的是最初版本
         # if len(shortTrade) > 0:  # 如果未平仓的空头交易大于0
         #     for t in shortTrade:
@@ -2437,6 +2439,17 @@ class BacktestingEngine(object):
         self.tradeCount = 0
         self.tradeDict.clear()
 
+    #add by xy 14 Aug 2017
+    #get lot shares by money
+    def moneyPerLot(self, price, symbol):
+        oneLotM = None
+        if symbol in BZJ_DL:
+            oneLotM = price  * self.size * BZJ_DL[symbol]
+        if symbol in BZJ_ZZ:
+            oneLotM = price  * self.size * BZJ_ZZ[symbol]
+        if symbol in BZJ_SQ:
+            oneLotM = price  * self.size * BZJ_SQ[symbol]
+        return oneLotM
 
 ########################################################################
 class TradingResult(object):

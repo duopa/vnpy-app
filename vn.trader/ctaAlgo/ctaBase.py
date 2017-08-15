@@ -138,11 +138,9 @@ class CtaBarData(object):
         self.lowTime = None  # 最后一次进入低位区域的时间
         self.highTime = None  # 最后一次进入高位区域的时间
 
-
 ########################################################################
 class CtaTickData(object):
     """Tick数据"""
-
     # ----------------------------------------------------------------------
     def __init__(self):
         """Constructor"""
