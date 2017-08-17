@@ -362,7 +362,8 @@ class Strategy_MACD_01(CtaTemplate):
                     and abs(self.lineM15.lineMacd[0 - idx]) > 2 \
                     and self.position.pos < 0 and self.entrust != 1:
                 self.writeCtaLog(u'{0},平仓空单{1}手,价格:{2}'.format(bar.datetime, self.position.maxPos, bar.close))
-                orderid = self.cover(price=bar.close, volume=self.position.pos, orderTime=self.curDateTime)
+                vol = self.position.pos * -1
+                orderid = self.cover(price=bar.close, volume= vol , orderTime=self.curDateTime)
                 if orderid:
                     self.lastOrderTime = self.curDateTime
                 return
