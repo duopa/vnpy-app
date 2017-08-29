@@ -602,8 +602,8 @@ def testRbByBar():
     # 设置回测用的数据结束日期
     engine.setEndDate('20170605')
 
-    #engine.setDatabase(dbName='stockcn', symbol='rb')
-    engine.setDatabase(dbName='stockcn', symbol='RB')
+    engine.setDatabase(dbName='stockcn', symbol='rb')
+    # engine.setDatabase(dbName='stockcn', symbol='RB')
 
     # 设置产品相关参数
     engine.setSlippage(0.5)  # 1跳（0.1）2跳0.2
@@ -611,8 +611,8 @@ def testRbByBar():
     engine.setSize(10)  # 合约大小
 
     settings = {}
-    #settings['vtSymbol'] = 'rb'
-    settings['vtSymbol'] = 'RB'
+    settings['vtSymbol'] = 'rb'
+    # settings['vtSymbol'] = 'RB'
     settings['shortSymbol'] = 'RB'
     settings['name'] = 'MACD'
     settings['mode'] = 'bar'
