@@ -1993,11 +1993,11 @@ class BacktestingEngine(object):
         if not resultDict:
 
             if len(longTrade) > 0:
-                msg = u'持多仓{0},资金占用:{1},仓位:{2}'.format(occupyLongVolume, occupyMoney, self.percent)
+                msg = u'持多仓{0},资金占用:{1},仓位比例:{2}'.format(occupyLongVolume, occupyMoney, self.percent)
                 self.output(msg)
                 self.writeCtaLog(msg)
             elif len(shortTrade) > 0:
-                msg = u'持空仓{0},资金占用:{1},仓位:{2}'.format(occupyShortVolume, occupyMoney, self.percent)
+                msg = u'持空仓{0},资金占用:{1},仓位比例:{2}'.format(occupyShortVolume, occupyMoney, self.percent)
                 self.output(msg)
                 self.writeCtaLog(msg)
             return

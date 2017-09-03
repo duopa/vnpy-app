@@ -7,7 +7,7 @@ from time import sleep
 # 其次，导入vnpy的基础模块
 import sys
 
-#sys.path.append('C:\\vnpy_1.5\\vnpy-master\\vn.trader')
+# sys.path.append('C:\\vnpy_1.5\\vnpy-master\\vn.trader')
 sys.path.append('../')
 from vtConstant import EMPTY_STRING, EMPTY_INT, DIRECTION_LONG, DIRECTION_SHORT, OFFSET_OPEN, STATUS_CANCELLED
 from utilSinaClient import UtilSinaClient
@@ -20,31 +20,18 @@ from ctaPosition import *
 from ctaPolicy import *
 from ctaBacktesting import BacktestingEngine
 
-#TODO 只能开一手
 
 class Strategy_MACD_01(CtaTemplate):
     """螺纹钢、15分钟级别+60分钟级别，MACD策略
-    策略：
-    仓位管理：
-    60m和15m多空是否同步决定仓位
-
-    多空仓开仓：
-    15f级别的macd死叉和金叉决定多空仓
-    macd是否大于一定范围
-
-    加仓
-    空单的时候出现背离
-
+    
     v1:15f上多空仓开仓
     v1_1:下单方式的变更
-    v2:60f上的仓位管理
-    v3:开仓点位优化
-    v4:增仓减仓优化
     
     本版本现存问题：
-    maxpos并不与self.percentlimit相对应，而是仍旧和maxpos的默认数相同
+    无
     
     已解决问题：
+    15f上按照百分比开仓
     
     """
     className = 'Strategy_MACD'
@@ -277,7 +264,7 @@ class Strategy_MACD_01(CtaTemplate):
 
         # 推送tick到15分钟K线
         self.lineM15.addBar(bar)
-       #self.lineM60.addBar(bar)
+        # self.lineM60.addBar(bar)
 
         # 4、交易逻辑
         # 首先检查是否是实盘运行还是数据预处理阶段
@@ -310,14 +297,14 @@ class Strategy_MACD_01(CtaTemplate):
 
         # 如果未持仓，检查是否符合开仓逻辑
         if self.position.pos == 0:
-            #TODO 1, 此处仅仅考虑 未持仓 ，是否需要考虑 持仓数量是否达到限制？
+            # TODO 1, 此处仅仅考虑 未持仓 ，是否需要考虑 持仓数量是否达到限制？
 
             # DIF快线上穿DEA慢线，15f上金叉，做多
             # 如果要macd大于2的代码and abs(self.lineM15.lineMacd[0 - idx]) > 2
             if self.lineM15.lineDif[-1 - idx] < self.lineM15.lineDea[-1 - idx] \
                     and self.lineM15.lineDif[0 - idx] > self.lineM15.lineDea[0 - idx] \
                     and abs(self.lineM15.lineMacd[0 - idx]) >= 2:
-                self.percentLimit=0.4
+                self.percentLimit = 0.4
                 # add by xy 12 August 2017
                 vol = self.getAvailablePos(bar)
                 if not vol:
@@ -333,7 +320,7 @@ class Strategy_MACD_01(CtaTemplate):
             if self.lineM15.lineDif[-1 - idx] > self.lineM15.lineDea[-1 - idx] \
                     and self.lineM15.lineDif[0 - idx] < self.lineM15.lineDea[0 - idx] \
                     and abs(self.lineM15.lineMacd[0 - idx]) >= 2:
-                self.percentLimit=0.4
+                self.percentLimit = 0.4
                 vol = self.getAvailablePos(bar)
                 if not vol:
                     return
@@ -344,7 +331,7 @@ class Strategy_MACD_01(CtaTemplate):
                 return
 
                 # 持仓，检查是否满足平仓条件
-        else: #持仓
+        else:  # 持仓
 
             # 死叉，多单离场
             if self.lineM15.lineDif[0 - idx] < self.lineM15.lineDea[0 - idx] \
@@ -363,7 +350,7 @@ class Strategy_MACD_01(CtaTemplate):
                     and self.position.pos < 0 and self.entrust != 1:
                 self.writeCtaLog(u'{0},平仓空单{1}手,价格:{2}'.format(bar.datetime, self.position.maxPos, bar.close))
                 vol = self.position.pos * -1
-                orderid = self.cover(price=bar.close, volume= vol , orderTime=self.curDateTime)
+                orderid = self.cover(price=bar.close, volume=vol, orderTime=self.curDateTime)
                 if orderid:
                     self.lastOrderTime = self.curDateTime
                 return
@@ -528,8 +515,8 @@ class Strategy_MACD_01(CtaTemplate):
         # 保存K线
         if not self.backtesting:
             return
+
     # ----------------------------------------------------------------------
-    #add by xy 12th August 2017
     def getAvailablePos(self, bar):
         capital, avail, _, _ = self.engine.getAccountInfo()
 
@@ -537,7 +524,7 @@ class Strategy_MACD_01(CtaTemplate):
         midPrice = (bar.high - bar.low) / 2 + bar.low
         pricePerLot = self.engine.moneyPerLot(midPrice, self.vtSymbol)
         if pricePerLot:
-           return int( avail / pricePerLot )
+            return int(avail / pricePerLot)
         else:
             return None
 
@@ -602,8 +589,8 @@ def testRbByBar():
     # 设置回测用的数据结束日期
     engine.setEndDate('20170605')
 
-    engine.setDatabase(dbName='stockcn', symbol='rb')
-    # engine.setDatabase(dbName='stockcn', symbol='RB')
+    # engine.setDatabase(dbName='stockcn', symbol='rb')
+    engine.setDatabase(dbName='stockcn', symbol='RB')
 
     # 设置产品相关参数
     engine.setSlippage(0.5)  # 1跳（0.1）2跳0.2
@@ -611,8 +598,8 @@ def testRbByBar():
     engine.setSize(10)  # 合约大小
 
     settings = {}
-    settings['vtSymbol'] = 'rb'
-    # settings['vtSymbol'] = 'RB'
+    # settings['vtSymbol'] = 'rb'
+    settings['vtSymbol'] = 'RB'
     settings['shortSymbol'] = 'RB'
     settings['name'] = 'MACD'
     settings['mode'] = 'bar'

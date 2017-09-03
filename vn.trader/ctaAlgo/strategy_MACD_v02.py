@@ -7,7 +7,8 @@ from time import sleep
 # 其次，导入vnpy的基础模块
 import sys
 
-sys.path.append('C:\\vnpy_1.5\\vnpy-master\\vn.trader')
+# sys.path.append('C:\\vnpy_1.5\\vnpy-master\\vn.trader')
+sys.path.append('../')
 from vtConstant import EMPTY_STRING, EMPTY_INT, DIRECTION_LONG, DIRECTION_SHORT, OFFSET_OPEN, STATUS_CANCELLED
 from utilSinaClient import UtilSinaClient
 
@@ -17,48 +18,33 @@ from ctaBase import *
 from ctaLineBar import *
 from ctaPosition import *
 from ctaPolicy import *
-from ctaBacktesting import *
+from ctaBacktesting import BacktestingEngine
 
 
-class Strategy_MACD(CtaTemplate):
+class Strategy_MACD_01(CtaTemplate):
     """螺纹钢、15分钟级别+60分钟级别，MACD策略
-    策略：
-    仓位管理：
-    60m和15m多空是否同步决定仓位
-    
-    多空仓：
-    15f级别的macd死叉和金叉决定多空仓
-    
-    加仓
-    空单的时候出现背离
-    减仓
-    
+
     v1:15f上多空仓开仓
-    v1_1:下单方式的变更
-    v2:60f上的仓位管理
-    v3:开仓点位优化
-    v4:增仓减仓优化
-    
+    v2:60f上的仓位管理体系
+
     本版本现存问题：
-    1，60f级别与15f级别暂时无法共存
-    2，运行后显示无交易结果
-    3,12解决后需要将仓位管理进行调整
-    
+    无
+
     已解决问题：
+    15f上按照百分比开仓
+
     """
     className = 'Strategy_MACD'
     author = u'横纵19950206'
 
     # 策略在外部设置的参数
-    inputSS = 1  # 参数SS，下单，范围是1~100，步长为1，默认=1，
 
     # ----------------------------------------------------------------------
     def __init__(self, ctaEngine, setting=None):
         """Constructor"""
-        super(Strategy_MACD, self).__init__(ctaEngine, setting)
+        super(Strategy_MACD_01, self).__init__(ctaEngine, setting)
 
         # 增加监控参数项目
-        self.paramList.append('inputSS')
 
         # 增加监控变量项目
         self.varList.append('pos')  # 仓位，这里的仓位通常是手数
@@ -87,7 +73,10 @@ class Strategy_MACD(CtaTemplate):
         # self.position.pos持仓状态，self.position.maxPos最大持仓
 
         # 增加ctabacktesing中的仓位管理
-        self.engine = BacktestingEngine()
+        if not ctaEngine:
+            self.engine = BacktestingEngine()
+        else:
+            self.engine = ctaEngine
         # 当前资金，当前可用资金，仓位比例，仓位比例上限
         self.capital, self.available, self.percent, self.percentLimit = self.engine.getAccountInfo()
 
@@ -278,7 +267,6 @@ class Strategy_MACD(CtaTemplate):
 
         # 推送Tick到lineM15
         self.lineM15.onTick(tick)
-        self.lineM60.onTick(tick)
 
         # 首先检查是否是实盘运行还是数据预处理阶段
         if not (self.inited and len(self.lineM15.inputMacdSlowPeriodLen) > 0):
@@ -307,6 +295,7 @@ class Strategy_MACD(CtaTemplate):
             else:
                 return
 
+    # ----------------------------------------------------------------------
     def onBarM60(self, bar):
         """60分钟上的多空仓决定仓位管理"""
         # 调用lineM60的显示bar内容
@@ -322,47 +311,7 @@ class Strategy_MACD(CtaTemplate):
         # 执行撤单逻辑
         self.__cancelLogic(dt=self.curDateTime)
 
-        if self.lineM60.mode == self.lineM60.TICK_MODE:
-            idx = 2
-        else:
-            idx = 1
-
-        # 60分钟金叉+15分钟金叉，总仓位设置在40%以内
-        if self.lineM60.lineDif[-1 - idx] < self.lineM60.lineDea[-1 - idx] \
-                and self.lineM60.lineDif[0 - idx] > self.lineM60.lineDea[0 - idx] \
-                and self.lineM15.lineDif[-1 - idx] < self.lineM15.lineDea[-1 - idx] \
-                and self.lineM15.lineDif[0 - idx] > self.lineM15.lineDea[0 - idx] \
-                and abs(self.lineM15.lineMacd[0 - idx]) > 2:
-            self.percentLimit = 0.4
-            self.writeCtaLog(u'{0},当前账户仓位:{1},最大可开仓仓位:{2}'.format(bar.datetime, self.percent, self.percentLimit))
-
-        # 60分钟金叉+15分钟死叉，总仓位设置在20%以内
-        if self.lineM60.lineDif[-1 - idx] < self.lineM60.lineDea[-1 - idx] \
-                and self.lineM60.lineDif[0 - idx] > self.lineM60.lineDea[0 - idx] \
-                and self.lineM15.lineDif[-1 - idx] > self.lineM15.lineDea[-1 - idx] \
-                and self.lineM15.lineDif[0 - idx] < self.lineM15.lineDea[0 - idx] \
-                and abs(self.lineM15.lineMacd[0 - idx]) > 2:
-            self.percentLimit = 0.2
-            self.writeCtaLog(u'{0},当前账户仓位:{1},最大可开仓仓位:{2}'.format(bar.datetime, self.percent, self.percentLimit))
-
-        # 60分钟死叉+15f死叉，总仓位设置在40%以内
-        if self.lineM60.lineDif[-1 - idx] > self.lineM60.lineDea[-1 - idx] \
-                and self.lineM60.lineDif[0 - idx] < self.lineM60.lineDea[0 - idx] \
-                and self.lineM15.lineDif[-1 - idx] > self.lineM15.lineDea[-1 - idx] \
-                and self.lineM15.lineDif[0 - idx] < self.lineM15.lineDea[0 - idx] \
-                and abs(self.lineM15.lineMacd[0 - idx]) > 2:
-            self.percentLimit = 0.4
-            self.writeCtaLog(u'{0},当前账户仓位:{1},最大可开仓仓位:{2}'.format(bar.datetime, self.percent, self.percentLimit))
-
-        # 60分钟死叉+15f金叉，总仓位设置在20%以内
-        if self.lineM60.lineDif[-1 - idx] > self.lineM60.lineDea[-1 - idx] \
-                and self.lineM60.lineDif[0 - idx] < self.lineM60.lineDea[0 - idx] \
-                and self.lineM15.lineDif[-1 - idx] < self.lineM15.lineDea[-1 - idx] \
-                and self.lineM15.lineDif[0 - idx] > self.lineM15.lineDea[0 - idx] \
-                and abs(self.lineM15.lineMacd[0 - idx]) > 2:
-            self.percentLimit = 0.2
-            self.writeCtaLog(u'{0},当前账户仓位:{1},最大可开仓仓位:{2}'.format(bar.datetime, self.percent, self.percentLimit))
-
+    # ----------------------------------------------------------------------
     def onBarM15(self, bar):
         """分钟K线数据更新，实盘时，由self.lineM15的回调"""
 
@@ -383,26 +332,27 @@ class Strategy_MACD(CtaTemplate):
             idx = 2
         else:
             idx = 1
-        # self.position.longPos多头持仓，self.position.shorPos多头持仓、
-        # self.position.pos持仓状态，self.position.maxPos最大持仓
+
         # 如果未持仓，检查是否符合开仓逻辑
         if self.position.pos == 0:
-            # 金叉：lineDif[-1 - idx] < lineDea[-1 - idx] and lineDif[0 - idx] > lineDea[0 - idx]
-            # 死叉：lineDif[-1 - idx] > lineDea[-1 - idx] and lineDif[0 - idx] < lineDea[0 - idx]
+            # TODO 1, 此处仅仅考虑 未持仓 ，是否需要考虑 持仓数量是否达到限制？
+
             # 60分钟上金叉
-            if self.lineM60.lineDif[-1 - idx] < self.lineM60.lineDea[-1 - idx] \
+            if self.lineM60.lineDif[-1 - idx] < self.lineM60[-1 - idx] \
                     and self.lineM60.lineDif[0 - idx] > self.lineM60.lineDea[0 - idx]:
-                # DIF快线上穿DEA慢线，15f上金叉
+                # DIF快线上穿DEA慢线，15f上金叉，做多
                 # 如果要macd大于2的代码and abs(self.lineM15.lineMacd[0 - idx]) > 2
                 if self.lineM15.lineDif[-1 - idx] < self.lineM15.lineDea[-1 - idx] \
                         and self.lineM15.lineDif[0 - idx] > self.lineM15.lineDea[0 - idx] \
-                        and abs(self.lineM15.lineMacd[0 - idx]) > 2:
+                        and abs(self.lineM15.lineMacd[0 - idx]) >= 2:
                     self.percentLimit = 0.4
-                    # 买入的时候按照最大仓位的比例买
-                    self.writeCtaLog(u'{0},开仓多单{1}手,价格:{2}'.format(bar.datetime, self.inputSS, bar.close))
-                    orderid = self.buy(price=bar.close, volume=self.inputSS, orderTime=self.curDateTime)
+                    vol = self.getAvailablePos(bar)
+                    if not vol:
+                        return
+
+                    self.writeCtaLog(u'{0},开仓多单{1}手,价格:{2}'.format(bar.datetime, vol, bar.close))
+                    orderid = self.buy(price=bar.close, volume=vol, orderTime=self.curDateTime)
                     if orderid:
-                        # 更新下单价格（为了定时撤单）
                         self.lastOrderTime = self.curDateTime
                     return
 
@@ -411,8 +361,11 @@ class Strategy_MACD(CtaTemplate):
                         and self.lineM15.lineDif[0 - idx] < self.lineM15.lineDea[0 - idx] \
                         and abs(self.lineM15.lineMacd[0 - idx]) > 2:
                     self.percentLimit = 0.2
-                    self.writeCtaLog(u'{0},开仓空单{1}手,价格:{2}'.format(bar.datetime, self.inputSS, bar.close))
-                    orderid = self.short(price=bar.close, volume=self.inputSS, orderTime=self.curDateTime)
+                    vol = self.getAvailablePos(bar)
+                    if not vol:
+                        return
+                    self.writeCtaLog(u'{0},开仓空单{1}手,价格:{2}'.format(bar.datetime, vol, bar.close))
+                    orderid = self.short(price=bar.close, volume=vol, orderTime=self.curDateTime)
                     if orderid:
                         self.lastOrderTime = self.curDateTime
                     return
@@ -420,48 +373,41 @@ class Strategy_MACD(CtaTemplate):
             # 60分钟上死叉
             if self.lineM60.lineDif[-1 - idx] > self.lineM60.lineDea[-1 - idx] \
                     and self.lineM60.lineDif[0 - idx] < self.lineM60.lineDea[0 - idx]:
-                # DIF快线上穿DEA慢线，15f上金叉
-                # 如果要macd大于2的代码and abs(self.lineM15.lineMacd[0 - idx]) > 2
-                if self.lineM15.lineDif[-1 - idx] < self.lineM15.lineDea[-1 - idx] \
-                        and self.lineM15.lineDif[0 - idx] > self.lineM15.lineDea[0 - idx] \
-                        and abs(self.lineM15.lineMacd[0 - idx]) > 2:
-                    self.percentLimit = 0.4
-                    self.writeCtaLog(u'{0},开仓多单{1}手,价格:{2}'.format(bar.datetime, self.inputSS, bar.close))
-                    orderid = self.buy(price=bar.close, volume=self.inputSS, orderTime=self.curDateTime)
-                    if orderid:
-                        # 更新下单价格（为了定时撤单）
-                        self.lastOrderTime = self.curDateTime
+            # DIF快线下穿DEA慢线，15f上死叉，做空
+            if self.lineM15.lineDif[-1 - idx] > self.lineM15.lineDea[-1 - idx] \
+                    and self.lineM15.lineDif[0 - idx] < self.lineM15.lineDea[0 - idx] \
+                    and abs(self.lineM15.lineMacd[0 - idx]) >= 2:
+                self.percentLimit = 0.4
+                vol = self.getAvailablePos(bar)
+                if not vol:
                     return
-
-                # DIF快线下穿DEA慢线，15f上死叉
-                if self.lineM15.lineDif[-1 - idx] > self.lineM15.lineDea[-1 - idx] \
-                        and self.lineM15.lineDif[0 - idx] < self.lineM15.lineDea[0 - idx] \
-                        and abs(self.lineM15.lineMacd[0 - idx]) > 2:
-                    self.percentLimit = 0.2
-                    self.writeCtaLog(u'{0},开仓空单{1}手,价格:{2}'.format(bar.datetime, self.inputSS, bar.close))
-                    orderid = self.short(price=bar.close, volume=self.inputSS, orderTime=self.curDateTime)
-                    if orderid:
-                        self.lastOrderTime = self.curDateTime
-                    return
-
-        # 持仓，检查是否满足平仓条件
-        else:
-            # 死叉，多单离场
-            if self.lineM15.lineDif[0 - idx] < self.lineM15.lineDea[0 - idx] \
-                    and abs(self.lineM15.lineMacd[0 - idx]) > 2 \
-                    and self.position.pos > 0 and self.entrust != -1:
-                self.writeCtaLog(u'{0},平仓多单{1}手,价格:{2}'.format(bar.datetime, self.inputSS, bar.close))
-                orderid = self.sell(price=bar.close, volume=self.inputSS, orderTime=self.curDateTime)
+                self.writeCtaLog(u'{0},开仓多单{1}手,价格:{2}'.format(bar.datetime, self.position.maxPos, bar.close))
+                orderid = self.short(price=bar.close, volume=vol, orderTime=self.curDateTime)
                 if orderid:
                     self.lastOrderTime = self.curDateTime
                 return
 
-            # 金叉，空离场
+                # 持仓，检查是否满足平仓条件
+        else:  # 持仓
+
+            # 死叉，多单离场
+            if self.lineM15.lineDif[0 - idx] < self.lineM15.lineDea[0 - idx] \
+                    and abs(self.lineM15.lineMacd[0 - idx]) > 2 \
+                    and self.position.pos > 0 and self.entrust != -1:
+
+                self.writeCtaLog(u'{0},平仓多单{1}手,价格:{2}'.format(bar.datetime, self.position.maxPos, bar.close))
+                orderid = self.sell(price=bar.close, volume=self.position.pos, orderTime=self.curDateTime)
+                if orderid:
+                    self.lastOrderTime = self.curDateTime
+                return
+
+            # 金叉，空单离场
             if self.lineM15.lineDif[0 - idx] > self.lineM15.lineDea[0 - idx] \
                     and abs(self.lineM15.lineMacd[0 - idx]) > 2 \
                     and self.position.pos < 0 and self.entrust != 1:
-                self.writeCtaLog(u'{0},平仓空单{1}手,价格:{2}'.format(bar.datetime, self.inputSS, bar.close))
-                orderid = self.cover(price=bar.close, volume=self.inputSS, orderTime=self.curDateTime)
+                self.writeCtaLog(u'{0},平仓空单{1}手,价格:{2}'.format(bar.datetime, self.position.maxPos, bar.close))
+                vol = self.position.pos * -1
+                orderid = self.cover(price=bar.close, volume=vol, orderTime=self.curDateTime)
                 if orderid:
                     self.lastOrderTime = self.curDateTime
                 return
@@ -627,6 +573,19 @@ class Strategy_MACD(CtaTemplate):
         if not self.backtesting:
             return
 
+    # ----------------------------------------------------------------------
+    # add by xy 12th August 2017
+    def getAvailablePos(self, bar):
+        capital, avail, _, _ = self.engine.getAccountInfo()
+
+        avail = min(avail, capital * self.percentLimit)
+        midPrice = (bar.high - bar.low) / 2 + bar.low
+        pricePerLot = self.engine.moneyPerLot(midPrice, self.vtSymbol)
+        if pricePerLot:
+            return int(avail / pricePerLot)
+        else:
+            return None
+
 
 def testRbByTick():
     # 创建回测引擎
@@ -657,7 +616,7 @@ def testRbByTick():
     settings['backtesting'] = True
 
     # 在引擎中创建策略对象
-    engine.initStrategy(Strategy_MACD, setting=settings)
+    engine.initStrategy(Strategy_MACD_01, setting=settings)
 
     # 使用简单复利模式计算
     engine.usageCompounding = False  # True时，只针对FINAL_MODE有效
@@ -677,7 +636,6 @@ def testRbByTick():
 
 def testRbByBar():
     # 创建回测引擎
-    from ctaBacktesting import *
     engine = BacktestingEngine()
 
     # 设置引擎的回测模式为Tick
@@ -689,7 +647,8 @@ def testRbByBar():
     # 设置回测用的数据结束日期
     engine.setEndDate('20170605')
 
-    engine.setDatabase(dbName='stockcn', symbol='rb')
+    # engine.setDatabase(dbName='stockcn', symbol='rb')
+    engine.setDatabase(dbName='stockcn', symbol='RB')
 
     # 设置产品相关参数
     engine.setSlippage(0.5)  # 1跳（0.1）2跳0.2
@@ -697,7 +656,8 @@ def testRbByBar():
     engine.setSize(10)  # 合约大小
 
     settings = {}
-    settings['vtSymbol'] = 'rb'
+    # settings['vtSymbol'] = 'rb'
+    settings['vtSymbol'] = 'RB'
     settings['shortSymbol'] = 'RB'
     settings['name'] = 'MACD'
     settings['mode'] = 'bar'
@@ -705,7 +665,7 @@ def testRbByBar():
     settings['percentLimit'] = 30
 
     # 在引擎中创建策略对象
-    engine.initStrategy(Strategy_MACD, setting=settings)
+    engine.initStrategy(Strategy_MACD_01, setting=settings)
 
     # 使用简单复利模式计算
     engine.usageCompounding = False  # True时，只针对FINAL_MODE有效
@@ -713,6 +673,7 @@ def testRbByBar():
     # 启用实时计算净值模式REALTIME_MODE / FINAL_MODE 回测结束时统一计算模式
     engine.calculateMode = engine.REALTIME_MODE
     engine.initCapital = 100000  # 设置期初资金
+
     engine.percentLimit = 40  # 设置资金使用上限比例(%)
     engine.barTimeInterval = 300  # bar的周期秒数，用于csv文件自动减时间
 
@@ -731,7 +692,8 @@ if __name__ == '__main__':
     from setup_logger import setup_logger
 
     setup_logger(
-        filename=u'TestLogs/{0}_{1}.log'.format(Strategy_MACD.className, datetime.now().strftime('%m%d_%H%M')),
-        debug=False)
+        filename=u'TestLogs/{0}_{1}.log'.format(Strategy_MACD_01.className, datetime.now().strftime('%m%d_%H%M')),
+        debug=False
+    )
     # 回测螺纹
     testRbByBar()
