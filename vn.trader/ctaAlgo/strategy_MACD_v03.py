@@ -25,7 +25,8 @@ class Strategy_MACD_01(CtaTemplate):
     """螺纹钢、15分钟级别+60分钟级别，MACD策略
     
     v1:15f上多空仓开仓
-    v1_1:下单方式的变更
+    v2:60f上的仓位管理体系
+    v3:15f上的止盈止损+开仓点位优化
     
     本版本现存问题：
     无
@@ -295,26 +296,47 @@ class Strategy_MACD_01(CtaTemplate):
         else:
             idx = 1
 
+        # 收集前15个dif和dea的数据
+        difdea = []
+
+        jincha_15f = self.lineM15.lineDif[-1 - idx] < self.lineM15.lineDea[-1 - idx] \
+                     and self.lineM15.lineDif[0 - idx] > self.lineM15.lineDea[0 - idx] \
+                     and abs(self.lineM15.lineMacd[0 - idx]) >= 2
+        sicha_15f = self.lineM15.lineDif[-1 - idx] > self.lineM15.lineDea[-1 - idx] \
+                    and self.lineM15.lineDif[0 - idx] < self.lineM15.lineDea[0 - idx] \
+                    and abs(self.lineM15.lineMacd[0 - idx]) > 2
+
         # 如果未持仓，检查是否符合开仓逻辑
         if self.position.pos == 0:
-            # TODO 1, 此处仅仅考虑 未持仓 ，是否需要考虑 持仓数量是否达到限制？
 
             # DIF快线上穿DEA慢线，15f上金叉，做多
             # 如果要macd大于2的代码and abs(self.lineM15.lineMacd[0 - idx]) > 2
-            if self.lineM15.lineDif[-1 - idx] < self.lineM15.lineDea[-1 - idx] \
-                    and self.lineM15.lineDif[0 - idx] > self.lineM15.lineDea[0 - idx] \
-                    and abs(self.lineM15.lineMacd[0 - idx]) >= 2:
+            if jincha_15f:
                 self.percentLimit = 0.4
-                # add by xy 12 August 2017
                 vol = self.getAvailablePos(bar)
                 if not vol:
                     return
-
-                self.writeCtaLog(u'{0},开仓多单{1}手,价格:{2}'.format(bar.datetime, vol, bar.close))
-                orderid = self.buy(price=bar.close, volume=vol, orderTime=self.curDateTime)
-                if orderid:
-                    self.lastOrderTime = self.curDateTime
-                return
+                for n in range(15):
+                    difdea.append(self.lineM15.lineDif[-n - idx])
+                    difdea.append(self.lineM15.lineDea[-n - idx])
+                if max(difdea) >= 30:  # 高位金叉，不开多仓
+                    return
+                if max(difdea) <= -30:  # 低位金叉，开重仓
+                    self.percent = self.percentLimit + 0.1
+                    self.writeCtaLog(u'{0},开仓多单{1}手,价格:{2}'.format(bar.datetime, self.inputSS, bar.close))
+                    orderid = self.buy(price=bar.close, volume=self.inputSS, orderTime=self.curDateTime)
+                    if orderid:
+                        # 更新下单价格（为了定时撤单）
+                        self.lastOrderTime = self.curDateTime
+                    return
+                else:
+                    self.percent = self.percentLimit * 1 / 2
+                    self.writeCtaLog(u'{0},开仓多单{1}手,价格:{2}'.format(bar.datetime, self.inputSS, bar.close))
+                    orderid = self.buy(price=bar.close, volume=self.inputSS, orderTime=self.curDateTime)
+                    if orderid:
+                        # 更新下单价格（为了定时撤单）
+                        self.lastOrderTime = self.curDateTime
+                    return
 
             # DIF快线下穿DEA慢线，15f上死叉，做空
             if self.lineM15.lineDif[-1 - idx] > self.lineM15.lineDea[-1 - idx] \
