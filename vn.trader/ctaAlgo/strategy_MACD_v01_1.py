@@ -77,7 +77,7 @@ class Strategy_MACD_01(CtaTemplate):
             self.engine = BacktestingEngine()
         else:
             self.engine = ctaEngine
-        # 当前资金，当前可用资金，仓位比例，仓位比例上限
+        # 实时权益，可用资金，仓位比例，仓位比例上限
         self.capital, self.available, self.percent, self.percentLimit = self.engine.getAccountInfo()
 
         if setting:
@@ -310,7 +310,7 @@ class Strategy_MACD_01(CtaTemplate):
                 if not vol:
                     return
 
-                self.writeCtaLog(u'{0},开仓多单{1}手,价格:{2}'.format(bar.datetime, self.position.maxPos, bar.close))
+                self.writeCtaLog(u'{0},开仓多单{1}手,价格:{2}'.format(bar.datetime, vol, bar.close))
                 orderid = self.buy(price=bar.close, volume=vol, orderTime=self.curDateTime)
                 if orderid:
                     self.lastOrderTime = self.curDateTime
@@ -324,7 +324,7 @@ class Strategy_MACD_01(CtaTemplate):
                 vol = self.getAvailablePos(bar)
                 if not vol:
                     return
-                self.writeCtaLog(u'{0},开仓多单{1}手,价格:{2}'.format(bar.datetime, self.position.maxPos, bar.close))
+                self.writeCtaLog(u'{0},开仓多单{1}手,价格:{2}'.format(bar.datetime, vol, bar.close))
                 orderid = self.short(price=bar.close, volume=vol, orderTime=self.curDateTime)
                 if orderid:
                     self.lastOrderTime = self.curDateTime
@@ -338,7 +338,7 @@ class Strategy_MACD_01(CtaTemplate):
                     and abs(self.lineM15.lineMacd[0 - idx]) > 2 \
                     and self.position.pos > 0 and self.entrust != -1:
 
-                self.writeCtaLog(u'{0},平仓多单{1}手,价格:{2}'.format(bar.datetime, self.position.maxPos, bar.close))
+                self.writeCtaLog(u'{0},平仓多单{1}手,价格:{2}'.format(bar.datetime, self.position.pos, bar.close))
                 orderid = self.sell(price=bar.close, volume=self.position.pos, orderTime=self.curDateTime)
                 if orderid:
                     self.lastOrderTime = self.curDateTime
@@ -348,7 +348,7 @@ class Strategy_MACD_01(CtaTemplate):
             if self.lineM15.lineDif[0 - idx] > self.lineM15.lineDea[0 - idx] \
                     and abs(self.lineM15.lineMacd[0 - idx]) > 2 \
                     and self.position.pos < 0 and self.entrust != 1:
-                self.writeCtaLog(u'{0},平仓空单{1}手,价格:{2}'.format(bar.datetime, self.position.maxPos, bar.close))
+                self.writeCtaLog(u'{0},平仓空单{1}手,价格:{2}'.format(bar.datetime, self.position.pos, bar.close))
                 vol = self.position.pos * -1
                 orderid = self.cover(price=bar.close, volume=vol, orderTime=self.curDateTime)
                 if orderid:
@@ -518,13 +518,17 @@ class Strategy_MACD_01(CtaTemplate):
 
     # ----------------------------------------------------------------------
     def getAvailablePos(self, bar):
+        """
+        剩余可开仓数量， 
+        """
+        # 实时权益，可用资金，仓位比例，仓位比例上限
         capital, avail, _, _ = self.engine.getAccountInfo()
 
         avail = min(avail, capital * self.percentLimit)
         midPrice = (bar.high - bar.low) / 2 + bar.low
-        pricePerLot = self.engine.moneyPerLot(midPrice, self.vtSymbol)
+        pricePerLot = self.engine.moneyPerLot(midPrice, self.vtSymbol)  # 每笔所需保证金
         if pricePerLot:
-            return int(avail / pricePerLot)
+            return int(avail / pricePerLot)  # 剩余可加仓数量（整数）
         else:
             return None
 
