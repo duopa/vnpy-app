@@ -26,7 +26,7 @@ class Strategy_MACD_01(CtaTemplate):
     
     v1:15f上多空仓开仓
     v2:60f上的仓位管理体系
-    v3:15f上的止盈止损+开仓点位优化
+    v3:15f上的加仓减仓+开仓点位优化
     
     本版本现存问题：
     无
@@ -319,38 +319,59 @@ class Strategy_MACD_01(CtaTemplate):
                 for n in range(15):
                     difdea.append(self.lineM15.lineDif[-n - idx])
                     difdea.append(self.lineM15.lineDea[-n - idx])
+
                 if max(difdea) >= 30:  # 高位金叉，不开多仓
                     return
+
                 if max(difdea) <= -30:  # 低位金叉，开重仓
-                    self.percent = self.percentLimit + 0.1
-                    self.writeCtaLog(u'{0},开仓多单{1}手,价格:{2}'.format(bar.datetime, self.inputSS, bar.close))
-                    orderid = self.buy(price=bar.close, volume=self.inputSS, orderTime=self.curDateTime)
+                    self.percentLimit = self.percentLimit + 0.1
+                    vol = self.getAvailablePos(bar)
+                    if not vol:
+                        return
+                    self.writeCtaLog(u'{0},开仓多单{1}手,价格:{2}'.format(bar.datetime, vol, bar.close))
+                    orderid = self.buy(price=bar.close, volume=vol, orderTime=self.curDateTime)
                     if orderid:
                         # 更新下单价格（为了定时撤单）
                         self.lastOrderTime = self.curDateTime
                     return
-                else:
-                    self.percent = self.percentLimit * 1 / 2
-                    self.writeCtaLog(u'{0},开仓多单{1}手,价格:{2}'.format(bar.datetime, self.inputSS, bar.close))
-                    orderid = self.buy(price=bar.close, volume=self.inputSS, orderTime=self.curDateTime)
+                else:  # 在-30到30的位置
+                    self.writeCtaLog(u'{0},开仓多单{1}手,价格:{2}'.format(bar.datetime, vol, bar.close))
+                    orderid = self.buy(price=bar.close, volume=vol, orderTime=self.curDateTime)
                     if orderid:
                         # 更新下单价格（为了定时撤单）
                         self.lastOrderTime = self.curDateTime
                     return
 
             # DIF快线下穿DEA慢线，15f上死叉，做空
-            if self.lineM15.lineDif[-1 - idx] > self.lineM15.lineDea[-1 - idx] \
-                    and self.lineM15.lineDif[0 - idx] < self.lineM15.lineDea[0 - idx] \
-                    and abs(self.lineM15.lineMacd[0 - idx]) >= 2:
+            if sicha_15f:
                 self.percentLimit = 0.4
                 vol = self.getAvailablePos(bar)
                 if not vol:
                     return
-                self.writeCtaLog(u'{0},开仓多单{1}手,价格:{2}'.format(bar.datetime, vol, bar.close))
-                orderid = self.short(price=bar.close, volume=vol, orderTime=self.curDateTime)
-                if orderid:
-                    self.lastOrderTime = self.curDateTime
-                return
+
+                for n in range(15):
+                    difdea.append(self.lineM15.lineDif[-n - idx])
+                    difdea.append(self.lineM15.lineDea[-n - idx])
+                if max(difdea) >= 30:  # 高位死叉，开重仓
+                    self.percentLimit = self.percentLimit + 0.1
+                    vol = self.getAvailablePos(bar)
+                    if not vol:
+                        return
+                    self.writeCtaLog(u'{0},开仓多单{1}手,价格:{2}'.format(bar.datetime, vol, bar.close))
+                    orderid = self.short(price=bar.close, volume=vol, orderTime=self.curDateTime)
+                    if orderid:
+                        # 更新下单价格（为了定时撤单）
+                        self.lastOrderTime = self.curDateTime
+                    return
+                if max(difdea) <= -30:  # 低位死叉，不开单
+                    return
+                else:
+                    self.writeCtaLog(u'{0},开仓多单{1}手,价格:{2}'.format(bar.datetime, vol, bar.close))
+                    orderid = self.buy(price=bar.close, volume=vol, orderTime=self.curDateTime)
+                    if orderid:
+                        # 更新下单价格（为了定时撤单）
+                        self.lastOrderTime = self.curDateTime
+                    return
 
                 # 持仓，检查是否满足平仓条件
         else:  # 持仓
@@ -540,9 +561,7 @@ class Strategy_MACD_01(CtaTemplate):
 
     # ----------------------------------------------------------------------
     def getAvailablePos(self, bar):
-        """
-        剩余可开仓数量， 
-        """
+        """剩余可开仓数量"""
         # 实时权益，可用资金，仓位比例，仓位比例上限
         capital, avail, _, _ = self.engine.getAccountInfo()
 

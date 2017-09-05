@@ -324,7 +324,7 @@ class Strategy_MACD_01(CtaTemplate):
                 vol = self.getAvailablePos(bar)
                 if not vol:
                     return
-                self.writeCtaLog(u'{0},开仓多单{1}手,价格:{2}'.format(bar.datetime, vol, bar.close))
+                self.writeCtaLog(u'{0},开仓空单{1}手,价格:{2}'.format(bar.datetime, vol, bar.close))
                 orderid = self.short(price=bar.close, volume=vol, orderTime=self.curDateTime)
                 if orderid:
                     self.lastOrderTime = self.curDateTime
