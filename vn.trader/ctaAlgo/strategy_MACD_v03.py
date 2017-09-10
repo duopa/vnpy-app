@@ -406,6 +406,12 @@ class Strategy_MACD_01(CtaTemplate):
             if self.lineM15.lineDif[0 - idx] < self.lineM15.lineDea[0 - idx] \
                     and abs(self.lineM15.lineMacd[0 - idx]) > 2 \
                     and self.position.pos > 0 and self.entrust != -1:
+                if sicha_15f:
+                    print "sicha_15 true"
+                else:
+                    #断点打在这里
+                    print "sicha15_false"
+
                 self.writeCtaLog(u'{0},平仓多单{1}手,价格:{2}'.format(bar.datetime, self.position.pos, bar.close))
                 orderid = self.sell(price=bar.close, volume=self.position.pos, orderTime=self.curDateTime)
                 if orderid:
