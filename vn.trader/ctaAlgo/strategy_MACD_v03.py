@@ -22,17 +22,20 @@ from ctaBacktesting import BacktestingEngine
 
 
 class Strategy_MACD_01(CtaTemplate):
-    """螺纹钢、15分钟级别+60分钟级别，MACD策略
-
+    """螺纹钢、15分钟级别MACD策略
+    
     v1:15f上多空仓开仓
     v2:60f上的仓位管理体系
-
+    v3:15f上的加仓减仓+开仓点位优化
+    
+    注意：策略用在不同品种上需要调整策略参数
+    
     本版本现存问题：
     无
-
+    
     已解决问题：
     15f上按照百分比开仓
-
+    
     """
     className = 'Strategy_MACD'
     author = u'横纵19950206'
@@ -77,7 +80,7 @@ class Strategy_MACD_01(CtaTemplate):
             self.engine = BacktestingEngine()
         else:
             self.engine = ctaEngine
-        # 当前资金，当前可用资金，仓位比例，仓位比例上限
+        # 实时权益，可用资金，仓位比例，仓位比例上限
         self.capital, self.available, self.percent, self.percentLimit = self.engine.getAccountInfo()
 
         if setting:
@@ -99,22 +102,6 @@ class Strategy_MACD_01(CtaTemplate):
                     self.lineM15.setMode(setting['mode'])
             except KeyError:
                 self.lineM15.setMode(self.lineM15.TICK_MODE)
-
-            lineM60Setting = {}
-            lineM60Setting['name'] = u'M60'  # k线名称
-            lineM60Setting['barTimeInterval'] = 60 * 60  # K线的Bar时长
-            lineM60Setting['inputMacdFastPeriodLen'] = 12  # DIF快线
-            lineM60Setting['inputMacdSlowPeriodLen'] = 26  # DEA慢线
-            lineM60Setting['inputMacdSignalPeriodLen'] = 9  # MACD中绿柱
-            lineM60Setting['shortSymbol'] = self.shortSymbol
-            self.lineM60 = CtaLineBar(self, self.onBarM60, lineM60Setting)
-
-            try:
-                mode = setting['mode']
-                if mode != EMPTY_STRING:
-                    self.lineM60.setMode(setting['mode'])
-            except KeyError:
-                self.lineM60.setMode(self.lineM60.TICK_MODE)
 
         self.onInit()
 
@@ -152,11 +139,6 @@ class Strategy_MACD_01(CtaTemplate):
         ret = sina.getMinBars(symbol=self.symbol, minute=15, callback=self.lineM15.addBar)
         if not ret:
             self.writeCtaLog(u'获取M15数据失败')
-            return False
-
-        ret = sina.getMinBars(symbol=self.symbol, minute=60, callback=self.lineM60.addBar)
-        if not ret:
-            self.writeCtaLog(u'获取M60数据失败')
             return False
 
         return True
@@ -285,7 +267,7 @@ class Strategy_MACD_01(CtaTemplate):
 
         # 推送tick到15分钟K线
         self.lineM15.addBar(bar)
-        self.lineM60.addBar(bar)
+        # self.lineM60.addBar(bar)
 
         # 4、交易逻辑
         # 首先检查是否是实盘运行还是数据预处理阶段
@@ -295,23 +277,6 @@ class Strategy_MACD_01(CtaTemplate):
             else:
                 return
 
-    # ----------------------------------------------------------------------
-    def onBarM60(self, bar):
-        """60分钟上的多空仓决定仓位管理"""
-        # 调用lineM60的显示bar内容
-        self.writeCtaLog(self.lineM60.displayLastBar())
-
-        # 未初始化完成
-        if not self.inited:
-            if len(self.lineM60.lineBar) > 120 + 5:
-                self.inited = True
-            else:
-                return
-
-        # 执行撤单逻辑
-        self.__cancelLogic(dt=self.curDateTime)
-
-    # ----------------------------------------------------------------------
     def onBarM15(self, bar):
         """分钟K线数据更新，实盘时，由self.lineM15的回调"""
 
@@ -333,268 +298,305 @@ class Strategy_MACD_01(CtaTemplate):
         else:
             idx = 1
 
-        jincha_60f = self.lineM60.lineDif[-1 - idx] < self.lineM60[-1 - idx] \
-                     and self.lineM60.lineDif[0 - idx] > self.lineM60.lineDea[0 - idx]
-        sicha_60f = self.lineM60.lineDif[-1 - idx] > self.lineM60.lineDea[-1 - idx] \
-                    and self.lineM60.lineDif[0 - idx] < self.lineM60.lineDea[0 - idx]
+        # 收集前15个dif和dea的数据
+        difdea = []
+
         jincha_15f = self.lineM15.lineDif[-1 - idx] < self.lineM15.lineDea[-1 - idx] \
                      and self.lineM15.lineDif[0 - idx] > self.lineM15.lineDea[0 - idx] \
                      and abs(self.lineM15.lineMacd[0 - idx]) >= 2
         sicha_15f = self.lineM15.lineDif[-1 - idx] > self.lineM15.lineDea[-1 - idx] \
                     and self.lineM15.lineDif[0 - idx] < self.lineM15.lineDea[0 - idx] \
-                    and abs(self.lineM15.lineMacd[0 - idx]) > 2
+                    and abs(self.lineM15.lineMacd[0 - idx]) >= 2
+        # 用于止盈的策略变量
+        up_4line = self.lineM15.lineMacd[-3 - idx] > self.lineM15.lineMacd[-2 - idx] > self.lineM15.lineMacd[
+            -1 - idx] > self.lineM15.lineMacd[0 - idx] and self.lineM15.lineMacd[-3 - idx] >= 10
+        down_4line = self.lineM15.lineMacd[-3 - idx] < self.lineM15.lineMacd[-2 - idx] < self.lineM15.lineMacd[
+            -1 - idx] < self.lineM15.lineMacd[0 - idx] and self.lineM15.lineMacd[-3 - idx] <= -10
 
         # 如果未持仓，检查是否符合开仓逻辑
         if self.position.pos == 0:
-            """
-            15f上决定开仓方向，60f与15f方向是否相同决定开仓仓位
-            """
-            # 60分钟上金叉
-            if jincha_60f:
-                # 60F金叉的同时15f上金叉，做多，双金叉，仓位放至40%
-                # 如果要macd大于2的代码and abs(self.lineM15.lineMacd[0 - idx]) > 2
-                if jincha_15f:
-                    self.percentLimit = 0.4
+
+            # DIF快线上穿DEA慢线，15f上金叉，做多
+            # 多仓的时候记录前期顶分型的价格，并且以此价格的稍高位做为止损位
+            if jincha_15f:
+                self.percentLimit = 0.4
+                vol = self.getAvailablePos(bar)
+                if not vol:
+                    return
+                for n in range(15):
+                    difdea.append(self.lineM15.lineDif[-n - idx])
+                    difdea.append(self.lineM15.lineDea[-n - idx])
+
+                if max(difdea) >= 25:  # 高位金叉，不开多仓
+                    return
+
+                if max(difdea) <= -30:  # 低位金叉，开重仓
+                    self.percentLimit = self.percentLimit + 0.1
                     vol = self.getAvailablePos(bar)
                     if not vol:
                         return
                     self.writeCtaLog(u'{0},开仓多单{1}手,价格:{2}'.format(bar.datetime, vol, bar.close))
                     orderid = self.buy(price=bar.close, volume=vol, orderTime=self.curDateTime)
                     if orderid:
+                        # 更新下单价格（为了定时撤单）
                         self.lastOrderTime = self.curDateTime
                     return
-
-                # 60f金叉的同时15f上死叉，60f与15f不共振，原有多仓
-                if sicha_15f:
-                    self.percentLimit = 0.2
-                    vol = self.getAvailablePos(bar)
-                    if not vol:
-                        return
-                    self.writeCtaLog(u'{0},开仓空单{1}手,价格:{2}'.format(bar.datetime, vol, bar.close))
-                    orderid = self.short(price=bar.close, volume=vol, orderTime=self.curDateTime)
+                else:  # 在-30到30的位置
+                    self.writeCtaLog(u'{0},开仓多单{1}手,价格:{2}'.format(bar.datetime, vol, bar.close))
+                    orderid = self.buy(price=bar.close, volume=vol, orderTime=self.curDateTime)
                     if orderid:
+                        # 更新下单价格（为了定时撤单）
                         self.lastOrderTime = self.curDateTime
                     return
 
-            # 60分钟上死叉
-            if sicha_60f:
-                # 60F死叉的同时15f上金叉，做多，双金叉，仓位放至20%
-                # 如果要macd大于2的代码and abs(self.lineM15.lineMacd[0 - idx]) > 2
-                if jincha_15f:
-                    self.percentLimit = 0.2
+            # DIF快线下穿DEA慢线，15f上死叉，做空
+            if sicha_15f:
+                self.percentLimit = 0.4
+                vol = self.getAvailablePos(bar)
+                if not vol:
+                    return
+
+                for n in range(15):
+                    difdea.append(self.lineM15.lineDif[-n - idx])
+                    difdea.append(self.lineM15.lineDea[-n - idx])
+                if max(difdea) >= 30:  # 高位死叉，开重仓
+                    self.percentLimit = self.percentLimit + 0.1  # 50%
                     vol = self.getAvailablePos(bar)
                     if not vol:
                         return
                     self.writeCtaLog(u'{0},开仓多单{1}手,价格:{2}'.format(bar.datetime, vol, bar.close))
+                    orderid = self.short(price=bar.close, volume=vol, orderTime=self.curDateTime)
+                    if orderid:
+                        # 更新下单价格（为了定时撤单）
+                        self.lastOrderTime = self.curDateTime
+                    return
+                if max(difdea) <= -25:  # 低位死叉，不开单
+                    return
+                else:
+                    self.writeCtaLog(u'{0},开仓多单{1}手,价格:{2}'.format(bar.datetime, vol, bar.close))
                     orderid = self.buy(price=bar.close, volume=vol, orderTime=self.curDateTime)
                     if orderid:
+                        # 更新下单价格（为了定时撤单）
                         self.lastOrderTime = self.curDateTime
                     return
 
-                # 60f死叉的同时15f上死叉，60f与15f不共振，仓位放至40%
-                if sicha_15f:
-                    self.percentLimit = 0.4
-                    vol = self.getAvailablePos(bar)
-                    if not vol:
-                        return
-                    self.writeCtaLog(u'{0},开仓空单{1}手,价格:{2}'.format(bar.datetime, vol, bar.close))
-                    orderid = self.short(price=bar.close, volume=vol, orderTime=self.curDateTime)
-                    if orderid:
-                        self.lastOrderTime = self.curDateTime
-                    return
+                    # 持仓，检查是否满足平仓条件
+        else:  # 持仓
             """
-            如果原来有持仓
-            60f金叉+15f金叉的时
+            这里减仓策略加入后收益降低了，回头得对着图核对一下，修改减仓策略
             """
-        elif self.position.pos >= 1 and self.percent >= 30 %:  # 最大仓位限定在40%且多头仓位的时候，即60f金叉+15f金叉
-            if jincha_60f and sicha_15f:  # 40%的多仓全平同时开20%的空仓
+            # # 多单减仓
+            # if self.position.pos > 0 and self.entrust != -1 and up_4line:
+            #     self.writeCtaLog(u'{0},平仓多单{1}手,价格:{2}'.format(bar.datetime, self.position.pos / 2, bar.close))
+            #     orderid = self.sell(price=bar.close, volume=self.position.pos / 2, orderTime=self.curDateTime)
+            #     if orderid:
+            #         self.lastOrderTime = self.curDateTime
+            #     return
+            #
+            # # 空单减仓
+            # if self.position.pos < 0 and self.entrust != 1 and down_4line:
+            #     self.writeCtaLog(u'{0},平仓空单{1}手,价格:{2}'.format(bar.datetime, self.position.pos / 2, bar.close))
+            #     vol = self.position.pos * -1
+            #     orderid = self.cover(price=bar.close, volume=vol / 2, orderTime=self.curDateTime)
+            #     if orderid:
+            #         self.lastOrderTime = self.curDateTime
+            #     return
+
+            # 死叉，多单离场
+            if self.lineM15.lineDif[0 - idx] < self.lineM15.lineDea[0 - idx] \
+                    and abs(self.lineM15.lineMacd[0 - idx]) > 2 \
+                    and self.position.pos > 0 and self.entrust != -1:
                 self.writeCtaLog(u'{0},平仓多单{1}手,价格:{2}'.format(bar.datetime, self.position.pos, bar.close))
                 orderid = self.sell(price=bar.close, volume=self.position.pos, orderTime=self.curDateTime)
                 if orderid:
                     self.lastOrderTime = self.curDateTime
+                return
 
-            if sicha_60f:
+            # 金叉，空单离场
+            if self.lineM15.lineDif[0 - idx] > self.lineM15.lineDea[0 - idx] \
+                    and abs(self.lineM15.lineMacd[0 - idx]) > 2 \
+                    and self.position.pos < 0 and self.entrust != 1:
+                self.writeCtaLog(u'{0},平仓空单{1}手,价格:{2}'.format(bar.datetime, self.position.pos, bar.close))
+                vol = self.position.pos * -1
+                orderid = self.cover(price=bar.close, volume=vol, orderTime=self.curDateTime)
+                if orderid:
+                    self.lastOrderTime = self.curDateTime
+                return
 
-            if sicha_60f and sicha_15f:
+    # ----------------------------------------------------------------------
+    def __cancelLogic(self, dt, force=False):
+        "撤单逻辑"""
 
+        if len(self.uncompletedOrders) < 1:
+            return
 
-# ----------------------------------------------------------------------
-def __cancelLogic(self, dt, force=False):
-    "撤单逻辑"""
+        if not self.lastOrderTime:
+            self.writeCtaLog(u'异常，上一交易时间为None')
+            return
 
-    if len(self.uncompletedOrders) < 1:
-        return
-
-    if not self.lastOrderTime:
-        self.writeCtaLog(u'异常，上一交易时间为None')
-        return
-
-    # 平仓检查时间比开开仓时间需要短一倍
-    if (self.position.pos >= 0 and self.entrust == 1) \
-            or (self.position.pos <= 0 and self.entrust == -1):
-        i = 1
-    else:
-        i = 1  # 原来是2，暂时取消
-
-    canceled = False
-
-    if ((dt - self.lastOrderTime).seconds > self.cancelSeconds / i) \
-            or force:  # 超过设置的时间还未成交
-
-        for order in self.uncompletedOrders.keys():
-            self.writeCtaLog(u'{0}超时{1}秒未成交，取消委托单：{2}'.format(dt, (dt - self.lastOrderTime).seconds, order))
-
-            self.cancelOrder(str(order))
-            canceled = True
-
-        # 取消未完成的订单
-        self.uncompletedOrders.clear()
-
-        if canceled:
-            self.entrust = 0
+        # 平仓检查时间比开开仓时间需要短一倍
+        if (self.position.pos >= 0 and self.entrust == 1) \
+                or (self.position.pos <= 0 and self.entrust == -1):
+            i = 1
         else:
-            self.writeCtaLog(u'异常：没有撤单')
+            i = 1  # 原来是2，暂时取消
 
+        canceled = False
 
-def __timeWindow(self, dt):
-    """交易与平仓窗口"""
-    # 交易窗口 避开早盘和夜盘的前5分钟，防止隔夜跳空。
+        if ((dt - self.lastOrderTime).seconds > self.cancelSeconds / i) \
+                or force:  # 超过设置的时间还未成交
 
-    self.closeWindow = False
-    self.tradeWindow = False
-    self.openWindow = False
+            for order in self.uncompletedOrders.keys():
+                self.writeCtaLog(u'{0}超时{1}秒未成交，取消委托单：{2}'.format(dt, (dt - self.lastOrderTime).seconds, order))
 
-    # 初始化当日的首次交易
-    # if (tick.datetime.hour == 9 or tick.datetime.hour == 21) and tick.datetime.minute == 0 and tick.datetime.second ==0:
-    #  self.firstTrade = True
+                self.cancelOrder(str(order))
+                canceled = True
 
-    # 开市期，波动较大，用于判断止损止盈，或开仓
-    if (dt.hour == 9 or dt.hour == 21) and dt.minute < 2:
-        self.openWindow = True
+            # 取消未完成的订单
+            self.uncompletedOrders.clear()
 
-    # 日盘
-    if dt.hour == 9 and dt.minute >= 0:
-        self.tradeWindow = True
-        return
+            if canceled:
+                self.entrust = 0
+            else:
+                self.writeCtaLog(u'异常：没有撤单')
 
-    if dt.hour == 10:
-        if dt.minute <= 15 or dt.minute >= 30:
+    def __timeWindow(self, dt):
+        """交易与平仓窗口"""
+        # 交易窗口 避开早盘和夜盘的前5分钟，防止隔夜跳空。
+
+        self.closeWindow = False
+        self.tradeWindow = False
+        self.openWindow = False
+
+        # 初始化当日的首次交易
+        # if (tick.datetime.hour == 9 or tick.datetime.hour == 21) and tick.datetime.minute == 0 and tick.datetime.second ==0:
+        #  self.firstTrade = True
+
+        # 开市期，波动较大，用于判断止损止盈，或开仓
+        if (dt.hour == 9 or dt.hour == 21) and dt.minute < 2:
+            self.openWindow = True
+
+        # 日盘
+        if dt.hour == 9 and dt.minute >= 0:
             self.tradeWindow = True
             return
 
-    if dt.hour == 11 and dt.minute <= 30:
-        self.tradeWindow = True
-        return
-
-    if dt.hour == 13 and dt.minute >= 30:
-        self.tradeWindow = True
-        return
-
-    if dt.hour == 14:
-
-        if dt.minute < 59:
-            self.tradeWindow = True
-            return
-
-        if dt.minute == 59:  # 日盘平仓
-            self.closeWindow = True
-            return
-
-    # 夜盘
-
-    if dt.hour == 21 and dt.minute >= 0:
-        self.tradeWindow = True
-        return
-
-    # 上期 贵金属， 次日凌晨2:30
-    if self.shortSymbol in NIGHT_MARKET_SQ1:
-
-        if dt.hour == 22 or dt.hour == 23 or dt.hour == 0 or dt.hour == 1:
-            self.tradeWindow = True
-            return
-
-        if dt.hour == 2:
-            if dt.minute < 29:  # 收市前29分钟
-                self.tradeWindow = True
-                return
-            if dt.minute == 29:  # 夜盘平仓
-                self.closeWindow = True
-                return
-        return
-
-    # 上期 有色金属，黑色金属，沥青 次日01:00
-    if self.shortSymbol in NIGHT_MARKET_SQ2:
-        if dt.hour == 22 or dt.hour == 23:
-            self.tradeWindow = True
-            return
-
-        if dt.hour == 0:
-            if dt.minute < 59:  # 收市前29分钟
+        if dt.hour == 10:
+            if dt.minute <= 15 or dt.minute >= 30:
                 self.tradeWindow = True
                 return
 
-            if dt.minute == 59:  # 夜盘平仓
-                self.closeWindow = True
-                return
-
-        return
-
-    # 上期 天然橡胶  23:00
-    if self.shortSymbol in NIGHT_MARKET_SQ3:
-
-        if dt.hour == 22:
-            if dt.minute < 59:  # 收市前1分钟
-                self.tradeWindow = True
-                return
-
-            if dt.minute == 59:  # 夜盘平仓
-                self.closeWindow = True
-                return
-
-    # 郑商、大连 23:30
-    if self.shortSymbol in NIGHT_MARKET_ZZ or self.shortSymbol in NIGHT_MARKET_DL:
-        if dt.hour == 22:
+        if dt.hour == 11 and dt.minute <= 30:
             self.tradeWindow = True
             return
 
-        if dt.hour == 23:
-            if dt.minute < 29:  # 收市前1分钟
+        if dt.hour == 13 and dt.minute >= 30:
+            self.tradeWindow = True
+            return
+
+        if dt.hour == 14:
+
+            if dt.minute < 59:
                 self.tradeWindow = True
                 return
-            if dt.minute == 29 and dt.second > 30:  # 夜盘平仓
+
+            if dt.minute == 59:  # 日盘平仓
                 self.closeWindow = True
                 return
-        return
 
+        # 夜盘
 
-# ----------------------------------------------------------------------
-def strToTime(self, t, ms):
-    """从字符串时间转化为time格式的时间"""
-    hh, mm, ss = t.split(':')
-    tt = datetime.time(int(hh), int(mm), int(ss), microsecond=ms)
-    return tt
+        if dt.hour == 21 and dt.minute >= 0:
+            self.tradeWindow = True
+            return
 
+        # 上期 贵金属， 次日凌晨2:30
+        if self.shortSymbol in NIGHT_MARKET_SQ1:
 
-# ----------------------------------------------------------------------
-def saveData(self, id):
-    """保存过程数据"""
-    # 保存K线
-    if not self.backtesting:
-        return
+            if dt.hour == 22 or dt.hour == 23 or dt.hour == 0 or dt.hour == 1:
+                self.tradeWindow = True
+                return
 
+            if dt.hour == 2:
+                if dt.minute < 29:  # 收市前29分钟
+                    self.tradeWindow = True
+                    return
+                if dt.minute == 29:  # 夜盘平仓
+                    self.closeWindow = True
+                    return
+            return
 
-# ----------------------------------------------------------------------
-# add by xy 12th August 2017
-def getAvailablePos(self, bar):
-    capital, avail, _, _ = self.engine.getAccountInfo()
+        # 上期 有色金属，黑色金属，沥青 次日01:00
+        if self.shortSymbol in NIGHT_MARKET_SQ2:
+            if dt.hour == 22 or dt.hour == 23:
+                self.tradeWindow = True
+                return
 
-    avail = min(avail, capital * self.percentLimit)
-    midPrice = (bar.high - bar.low) / 2 + bar.low
-    pricePerLot = self.engine.moneyPerLot(midPrice, self.vtSymbol)
-    if pricePerLot:
-        return int(avail / pricePerLot)
-    else:
-        return None
+            if dt.hour == 0:
+                if dt.minute < 59:  # 收市前29分钟
+                    self.tradeWindow = True
+                    return
+
+                if dt.minute == 59:  # 夜盘平仓
+                    self.closeWindow = True
+                    return
+
+            return
+
+        # 上期 天然橡胶  23:00
+        if self.shortSymbol in NIGHT_MARKET_SQ3:
+
+            if dt.hour == 22:
+                if dt.minute < 59:  # 收市前1分钟
+                    self.tradeWindow = True
+                    return
+
+                if dt.minute == 59:  # 夜盘平仓
+                    self.closeWindow = True
+                    return
+
+        # 郑商、大连 23:30
+        if self.shortSymbol in NIGHT_MARKET_ZZ or self.shortSymbol in NIGHT_MARKET_DL:
+            if dt.hour == 22:
+                self.tradeWindow = True
+                return
+
+            if dt.hour == 23:
+                if dt.minute < 29:  # 收市前1分钟
+                    self.tradeWindow = True
+                    return
+                if dt.minute == 29 and dt.second > 30:  # 夜盘平仓
+                    self.closeWindow = True
+                    return
+            return
+
+    # ----------------------------------------------------------------------
+    def strToTime(self, t, ms):
+        """从字符串时间转化为time格式的时间"""
+        hh, mm, ss = t.split(':')
+        tt = datetime.time(int(hh), int(mm), int(ss), microsecond=ms)
+        return tt
+
+    # ----------------------------------------------------------------------
+    def saveData(self, id):
+        """保存过程数据"""
+        # 保存K线
+        if not self.backtesting:
+            return
+
+    # ----------------------------------------------------------------------
+    def getAvailablePos(self, bar):
+        """剩余可开仓数量"""
+        # 实时权益，可用资金，仓位比例，仓位比例上限
+        capital, avail, _, _ = self.engine.getAccountInfo()
+
+        avail = min(avail, capital * self.percentLimit)
+        midPrice = (bar.high - bar.low) / 2 + bar.low
+        pricePerLot = self.engine.moneyPerLot(midPrice, self.vtSymbol)  # 每笔所需保证金
+        if pricePerLot:
+            return int(avail / pricePerLot)  # 剩余可加仓数量（整数）
+        else:
+            return None
 
 
 def testRbByTick():

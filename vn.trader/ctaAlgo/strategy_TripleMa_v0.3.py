@@ -356,6 +356,7 @@ class Strategy_TripleMa(CtaTemplate):
         self.__cancelLogic(dt=self.curDateTime)
 
         if len(self.lineM5.lineMa3) > 5:
+            # 取前五个第三条均线的均值
             ma5_Ma120 = ta.MA(numpy.array(self.lineM5.lineMa3, dtype=float), 5)[-1]
         else:
             ma5_Ma120 = self.lineM5.lineMa3[-1]
