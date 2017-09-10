@@ -27,6 +27,7 @@ class Strategy_MACD_01(CtaTemplate):
     v1:15f上多空仓开仓
     v2:60f上的仓位管理体系
     v3:15f上的加仓减仓+开仓点位优化
+    v4:增加15f上的止损策略
     
     注意：策略用在不同品种上需要调整策略参数
     
@@ -70,6 +71,10 @@ class Strategy_MACD_01(CtaTemplate):
         self.lineM15 = None  # 5分钟K线
         self.lineM60 = None  # 60分钟k线
 
+        # 创建一个策略规则
+        self.policy = CtaPolicy()
+        self.atr = 10  # 平均波动
+
         # 增加仓位管理模块
         self.position = CtaPosition(self)
         # self.position.longPos多头持仓，self.position.shorPos多头持仓、
@@ -94,6 +99,7 @@ class Strategy_MACD_01(CtaTemplate):
             lineM15Setting['inputMacdFastPeriodLen'] = 12  # DIF快线
             lineM15Setting['inputMacdSlowPeriodLen'] = 26  # DEA慢线
             lineM15Setting['inputMacdSignalPeriodLen'] = 9  # MACD中绿柱
+            lineM15Setting['inputPreLen'] = 20  # 前高/前低
             lineM15Setting['shortSymbol'] = self.shortSymbol
             self.lineM15 = CtaLineBar(self, self.onBarM15, lineM15Setting)
             try:
@@ -340,6 +346,13 @@ class Strategy_MACD_01(CtaTemplate):
                     if orderid:
                         # 更新下单价格（为了定时撤单）
                         self.lastOrderTime = self.curDateTime
+                        # 更新开仓价格，开仓价格为bar的收盘价
+                        self.policy.entryPrice=bar.close
+                        # 多仓，多仓，设置前低为止损价，设定固定止损价格为前低
+                        # 这里的止损是把这里作为一买点的，如果跌破前低，说明这里不是一买，止损
+                        # 后期应该附加上缠论的顶底分型作为止损精确点
+                        self.policy.exitOnStopPrice = self.lineM15.preLow[-1]
+                        # 这个后面后期可能要适当加一定参数
                     return
                 else:  # 在-30到30的位置
                     self.writeCtaLog(u'{0},开仓多单{1}手,价格:{2}'.format(bar.datetime, vol, bar.close))
@@ -347,6 +360,13 @@ class Strategy_MACD_01(CtaTemplate):
                     if orderid:
                         # 更新下单价格（为了定时撤单）
                         self.lastOrderTime = self.curDateTime
+                        # 更新开仓价格，开仓价格为bar的收盘价
+                        self.policy.entryPrice = bar.close
+                        # 多仓，多仓，设置前低为止损价，设定固定止损价格为前低
+                        # 这里的止损是把这里作为一买点的，如果跌破前低，说明这里不是一买，止损
+                        # 后期应该附加上缠论的顶底分型作为止损精确点
+                        self.policy.exitOnStopPrice = self.lineM15.preLow[-1]
+                        # 这个后面后期可能要适当加一定参数
                     return
 
             # DIF快线下穿DEA慢线，15f上死叉，做空
@@ -355,7 +375,6 @@ class Strategy_MACD_01(CtaTemplate):
                 vol = self.getAvailablePos(bar)
                 if not vol:
                     return
-
                 for n in range(15):
                     difdea.append(self.lineM15.lineDif[-n - idx])
                     difdea.append(self.lineM15.lineDea[-n - idx])
@@ -369,6 +388,10 @@ class Strategy_MACD_01(CtaTemplate):
                     if orderid:
                         # 更新下单价格（为了定时撤单）
                         self.lastOrderTime = self.curDateTime
+                        # 更新开仓价格
+                        self.policy.entryPrice = bar.close
+                        # 做空，设置前高为止损价,exitOnStopPrice固定止损价格
+                        self.policy.exitOnStopPrice = self.lineM15.preHigh[-1]
                     return
                 if max(difdea) <= -25:  # 低位死叉，不开单
                     return
@@ -422,6 +445,26 @@ class Strategy_MACD_01(CtaTemplate):
                 if orderid:
                     self.lastOrderTime = self.curDateTime
                 return
+            # 固定止损
+            if self.policy.exitOnStopPrice > 0:  #
+                if self.pos > 0 and self.entrust != 1 \
+                        and bar.close < self.policy.exitOnStopPrice:
+                    self.writeCtaLog(u'{0},固定止损，平仓多单{1}手,价格:{2}'.format(bar.datetime, self.inputSS, bar.close))
+                    orderid = self.sell(price=bar.close, volume=self.inputSS, orderTime=self.curDateTime)
+                    if orderid:
+                        # 更新下单时间（为了定时撤单）
+                        self.lastOrderTime = self.curDateTime
+                    return
+
+                if self.pos < 0 and self.entrust != -1 \
+                        and bar.close > self.policy.exitOnStopPrice:
+                    self.writeCtaLog(u'{0},固定止损，平仓空单{1}手,价格:{2}'.format(bar.datetime, self.inputSS, bar.close))
+                    orderid = self.cover(price=bar.close, volume=self.inputSS, orderTime=self.curDateTime)
+                    if orderid:
+                        # 更新下单时间（为了定时撤单）
+                        self.lastOrderTime = self.curDateTime
+                    return
+
 
     # ----------------------------------------------------------------------
     def __cancelLogic(self, dt, force=False):
