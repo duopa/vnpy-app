@@ -347,7 +347,7 @@ class Strategy_MACD_01(CtaTemplate):
                         # 更新下单价格（为了定时撤单）
                         self.lastOrderTime = self.curDateTime
                         # 更新开仓价格，开仓价格为bar的收盘价
-                        self.policy.entryPrice=bar.close
+                        self.policy.entryPrice = bar.close
                         # 多仓，多仓，设置前低为止损价，设定固定止损价格为前低
                         # 这里的止损是把这里作为一买点的，如果跌破前低，说明这里不是一买，止损
                         # 后期应该附加上缠论的顶底分型作为止损精确点
@@ -446,25 +446,24 @@ class Strategy_MACD_01(CtaTemplate):
                     self.lastOrderTime = self.curDateTime
                 return
             # 固定止损
-            if self.policy.exitOnStopPrice > 0:  #
-                if self.pos > 0 and self.entrust != 1 \
-                        and bar.close < self.policy.exitOnStopPrice:
-                    self.writeCtaLog(u'{0},固定止损，平仓多单{1}手,价格:{2}'.format(bar.datetime, self.inputSS, bar.close))
-                    orderid = self.sell(price=bar.close, volume=self.inputSS, orderTime=self.curDateTime)
+            if self.policy.exitOnStopPrice > 0:
+                # 多单止损
+                if self.pos > 0 and self.entrust != 1 and bar.close < self.policy.exitOnStopPrice:
+                    self.writeCtaLog(u'{0},固定止损，平仓多单{1}手,价格:{2}'.format(bar.datetime, self.position.pos, bar.close))
+                    orderid = self.sell(price=bar.close, volume=self.position.pos, orderTime=self.curDateTime)
                     if orderid:
                         # 更新下单时间（为了定时撤单）
                         self.lastOrderTime = self.curDateTime
                     return
-
-                if self.pos < 0 and self.entrust != -1 \
-                        and bar.close > self.policy.exitOnStopPrice:
-                    self.writeCtaLog(u'{0},固定止损，平仓空单{1}手,价格:{2}'.format(bar.datetime, self.inputSS, bar.close))
-                    orderid = self.cover(price=bar.close, volume=self.inputSS, orderTime=self.curDateTime)
+                # 空单止损
+                if self.pos < 0 and self.entrust != -1 and bar.close > self.policy.exitOnStopPrice:
+                    vol = self.position.pos * -1
+                    self.writeCtaLog(u'{0},固定止损，平仓空单{1}手,价格:{2}'.format(bar.datetime, vol, bar.close))
+                    orderid = self.cover(price=bar.close, volume=vol, orderTime=self.curDateTime)
                     if orderid:
                         # 更新下单时间（为了定时撤单）
                         self.lastOrderTime = self.curDateTime
                     return
-
 
     # ----------------------------------------------------------------------
     def __cancelLogic(self, dt, force=False):
