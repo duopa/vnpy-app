@@ -2353,6 +2353,8 @@ class BacktestingEngine(object):
         self.output(u'佣金总额：\t%s' % formatNumber(d['totalCommission']))
 
         # 绘图
+	import matplotlib
+        matplotlib.use('Agg')
         import matplotlib.pyplot as plt
 
         pCapital = plt.subplot(3, 1, 1)
