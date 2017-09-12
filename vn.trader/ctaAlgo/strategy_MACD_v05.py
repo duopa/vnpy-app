@@ -93,6 +93,7 @@ class Strategy_MACD_01(CtaTemplate):
             self.setParam(setting)
 
             # 创建的M15 K线
+            # TODO macd参数选择：中长线配置36+60+10，超短9+17+8，正常：12+26+9
             lineM15Setting = {}
             lineM15Setting['name'] = u'M15'  # k线名称
             lineM15Setting['barTimeInterval'] = 60 * 15  # K线的Bar时长
@@ -307,6 +308,7 @@ class Strategy_MACD_01(CtaTemplate):
         # 收集前15个dif和dea的数据
         difdea = []
 
+        # TODO lineMacd需要根据不同的品种进行和周期进行调整，后期可能研究一下bp网格进行参数的动态优化
         jincha_15f = self.lineM15.lineDif[-1 - idx] < self.lineM15.lineDea[-1 - idx] \
                      and self.lineM15.lineDif[0 - idx] > self.lineM15.lineDea[0 - idx] \
                      and abs(self.lineM15.lineMacd[0 - idx]) >= 2
@@ -352,7 +354,7 @@ class Strategy_MACD_01(CtaTemplate):
                         # 这里的止损是把这里作为一买点的，如果跌破前低，说明这里不是一买，止损
                         # 后期应该附加上缠论的顶底分型作为止损精确点
                         self.policy.exitOnStopPrice = self.lineM15.preLow[-1]
-                        # 这个后面后期可能要适当加一定参数
+                        # TODO: 这个后面后期可能要适当加一定参数
                     return
                 else:  # 在-30到30的位置
                     self.writeCtaLog(u'{0},开仓多单{1}手,价格:{2}'.format(bar.datetime, vol, bar.close))
@@ -378,6 +380,7 @@ class Strategy_MACD_01(CtaTemplate):
                 for n in range(15):
                     difdea.append(self.lineM15.lineDif[-n - idx])
                     difdea.append(self.lineM15.lineDea[-n - idx])
+                # TODO 高低位的参数的判断
                 if max(difdea) >= 30:  # 高位死叉，开重仓
                     self.percentLimit = self.percentLimit + 0.1  # 50%
                     vol = self.getAvailablePos(bar)
