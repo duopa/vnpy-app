@@ -375,6 +375,27 @@ class Strategy_TripleMa(CtaTemplate):
 
         ma5_Ma10 = ta.MA(numpy.array(self.lineM5.lineMa1, dtype=float), 5)[-1]
 
+        # MA10下穿MA20，多单离场
+        if self.position.pos > 0 \
+            and self.lineM5.lineMa1[-1] < self.lineM5.lineMa2[-1] \
+            and  self.entrust != -1:
+            self.writeCtaLog(u'{0},平仓多单{1}手,价格:{2}'.format(bar.datetime, abs(self.position.pos), bar.close))
+            orderid = self.sell(price=bar.close, volume=abs(self.position.pos), orderTime=self.curDateTime)
+            if orderid:
+                # 更新下单时间（为了定时撤单）
+                self.lastOrderTime = self.curDateTime
+            return
+
+        # MA10上穿MA20，空离场
+        if self.position.pos < 0 \
+            and self.lineM5.lineMa1[-1] > self.lineM5.lineMa2[-1] \
+            and  self.entrust != 1:
+            self.writeCtaLog(u'{0},平仓空单{1}手,价格:{2}'.format(bar.datetime, abs(self.position.pos), bar.close))
+            orderid = self.cover(price=bar.close, volume=abs(self.position.pos), orderTime=self.curDateTime)
+            if orderid:
+                # 更新下单时间（为了定时撤单）
+                self.lastOrderTime = self.curDateTime
+            return
         # 如果未持仓，检查是否符合开仓逻辑
         if self.position.pos == 0:
             # MA10 上穿MA20， MA10 > MA120， bar.close > MA120, MA(MA120)< MA120
@@ -417,27 +438,8 @@ class Strategy_TripleMa(CtaTemplate):
                     self.policy.exitOnStopPrice = self.lineM5.preHigh[-1]
                 return
 
-        # 持仓，检查是否满足平仓条件
-        else:
-            # MA10下穿MA20，多单离场
-            if self.lineM5.lineMa1[-1] < self.lineM5.lineMa2[-1] \
-                    and self.position.pos > 0 and self.entrust != -1:
-                self.writeCtaLog(u'{0},平仓多单{1}手,价格:{2}'.format(bar.datetime, abs(self.position.pos), bar.close))
-                orderid = self.sell(price=bar.close, volume=abs(self.position.pos), orderTime=self.curDateTime)
-                if orderid:
-                    # 更新下单时间（为了定时撤单）
-                    self.lastOrderTime = self.curDateTime
-                return
 
-            # MA10上穿MA20，空离场
-            if self.lineM5.lineMa1[-1] > self.lineM5.lineMa2[-1] \
-                    and self.position.pos < 0 and self.entrust != 1:
-                self.writeCtaLog(u'{0},平仓空单{1}手,价格:{2}'.format(bar.datetime, abs(self.position.pos), bar.close))
-                orderid = self.cover(price=bar.close, volume=abs(self.position.pos), orderTime=self.curDateTime)
-                if orderid:
-                    # 更新下单时间（为了定时撤单）
-                    self.lastOrderTime = self.curDateTime
-                return
+
 
             # policy 跟随止损
             if self.policy.exitOnLastRtnPips > 0:
