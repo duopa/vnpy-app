@@ -301,12 +301,16 @@ class Strategy_MACD_01(CtaTemplate):
         # 收集前15个dif和dea的数据
         difdea = []
 
-        jincha_15f = self.lineM15.lineDif[-1 - idx] < self.lineM15.lineDea[-1 - idx] \
-                     and self.lineM15.lineDif[0 - idx] > self.lineM15.lineDea[0 - idx] \
-                     and abs(self.lineM15.lineMacd[0 - idx]) >= 2
-        sicha_15f = self.lineM15.lineDif[-1 - idx] > self.lineM15.lineDea[-1 - idx] \
-                    and self.lineM15.lineDif[0 - idx] < self.lineM15.lineDea[0 - idx] \
-                    and abs(self.lineM15.lineMacd[0 - idx]) >= 2
+        jincha_15f_total = self.lineM15.lineDif[-1 - idx] < self.lineM15.lineDea[-1 - idx] \
+                           and self.lineM15.lineDif[0 - idx] > self.lineM15.lineDea[0 - idx] \
+                           and abs(self.lineM15.lineMacd[0 - idx]) >= 2
+        jincha_15f_part = self.lineM15.lineDif[0 - idx] > self.lineM15.lineDea[0 - idx] \
+                          and abs(self.lineM15.lineMacd[0 - idx]) >= 2
+        sicha_15f_total = self.lineM15.lineDif[-1 - idx] > self.lineM15.lineDea[-1 - idx] \
+                          and self.lineM15.lineDif[0 - idx] < self.lineM15.lineDea[0 - idx] \
+                          and abs(self.lineM15.lineMacd[0 - idx]) >= 2
+        sicha_15f_part = self.lineM15.lineDif[0 - idx] < self.lineM15.lineDea[0 - idx] \
+                         and abs(self.lineM15.lineMacd[0 - idx]) >= 2
         # 用于止盈的策略变量
         up_4line = self.lineM15.lineMacd[-3 - idx] > self.lineM15.lineMacd[-2 - idx] > self.lineM15.lineMacd[
             -1 - idx] > self.lineM15.lineMacd[0 - idx] and self.lineM15.lineMacd[-3 - idx] >= 10
@@ -315,10 +319,9 @@ class Strategy_MACD_01(CtaTemplate):
 
         # 如果未持仓，检查是否符合开仓逻辑
         if self.position.pos == 0:
-
             # DIF快线上穿DEA慢线，15f上金叉，做多
             # 多仓的时候记录前期顶分型的价格，并且以此价格的稍高位做为止损位
-            if jincha_15f:
+            if jincha_15f_total:
                 self.percentLimit = 0.4
                 vol = self.getAvailablePos(bar)
                 if not vol:
@@ -350,7 +353,7 @@ class Strategy_MACD_01(CtaTemplate):
                     return
 
             # DIF快线下穿DEA慢线，15f上死叉，做空
-            if sicha_15f:
+            if sicha_15f_total:
                 self.percentLimit = 0.4
                 vol = self.getAvailablePos(bar)
                 if not vol:
@@ -381,10 +384,10 @@ class Strategy_MACD_01(CtaTemplate):
                     return
 
                     # 持仓，检查是否满足平仓条件
-        else:  # 持仓
-            """
-            这里减仓策略加入后收益降低了，回头得对着图核对一下，修改减仓策略
-            """
+        # else:  # 持仓
+        #     """
+        #     这里减仓策略加入后收益降低了，回头得对着图核对一下，修改减仓策略
+        #     """
             # # 多单减仓
             # if self.position.pos > 0 and self.entrust != -1 and up_4line:
             #     self.writeCtaLog(u'{0},平仓多单{1}手,价格:{2}'.format(bar.datetime, self.position.pos / 2, bar.close))
@@ -402,32 +405,22 @@ class Strategy_MACD_01(CtaTemplate):
             #         self.lastOrderTime = self.curDateTime
             #     return
 
-            # 死叉，多单离场
-            if self.lineM15.lineDif[0 - idx] < self.lineM15.lineDea[0 - idx] \
-                    and abs(self.lineM15.lineMacd[0 - idx]) > 2 \
-                    and self.position.pos > 0 and self.entrust != -1:
-                if sicha_15f:
-                    print "sicha_15 true"
-                else:
-                    #断点打在这里
-                    print "sicha15_false"
+        # 如果已持仓，检查是否符合平仓条件
+        if sicha_15f_part and self.position.pos > 0:
+            self.writeCtaLog(u'{0},平仓多单{1}手,价格:{2}'.format(bar.datetime, self.position.pos, bar.close))
+            orderid = self.sell(price=bar.close, volume=self.position.pos, orderTime=self.curDateTime)
+            if orderid:
+                self.lastOrderTime = self.curDateTime
+            return
 
-                self.writeCtaLog(u'{0},平仓多单{1}手,价格:{2}'.format(bar.datetime, self.position.pos, bar.close))
-                orderid = self.sell(price=bar.close, volume=self.position.pos, orderTime=self.curDateTime)
-                if orderid:
-                    self.lastOrderTime = self.curDateTime
-                return
-
-            # 金叉，空单离场
-            if self.lineM15.lineDif[0 - idx] > self.lineM15.lineDea[0 - idx] \
-                    and abs(self.lineM15.lineMacd[0 - idx]) > 2 \
-                    and self.position.pos < 0 and self.entrust != 1:
-                self.writeCtaLog(u'{0},平仓空单{1}手,价格:{2}'.format(bar.datetime, self.position.pos, bar.close))
-                vol = self.position.pos * -1
-                orderid = self.cover(price=bar.close, volume=vol, orderTime=self.curDateTime)
-                if orderid:
-                    self.lastOrderTime = self.curDateTime
-                return
+        # 金叉，空单离场
+        if jincha_15f_part and self.position.pos < 0:
+            self.writeCtaLog(u'{0},平仓空单{1}手,价格:{2}'.format(bar.datetime, self.position.pos, bar.close))
+            vol = self.position.pos * -1
+            orderid = self.cover(price=bar.close, volume=vol, orderTime=self.curDateTime)
+            if orderid:
+                self.lastOrderTime = self.curDateTime
+            return
 
     # ----------------------------------------------------------------------
     def __cancelLogic(self, dt, force=False):

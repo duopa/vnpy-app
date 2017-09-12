@@ -2,12 +2,9 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="8c057f2c-4b76-4660-8273-923a6bbd48e6" name="Default" comment="">
-      <change type="DELETED" beforePath="$PROJECT_DIR$/.idea/misc.xml" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/.idea/modules.xml" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/.idea/vcs.xml" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/.idea/vnpy-app.iml" afterPath="" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.gitignore" afterPath="$PROJECT_DIR$/.gitignore" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/vn.trader/ctaAlgo/CTA_setting.json" afterPath="$PROJECT_DIR$/vn.trader/ctaAlgo/CTA_setting.json" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/vn.trader/ctaAlgo/strategy_MACD_v03.py" afterPath="$PROJECT_DIR$/vn.trader/ctaAlgo/strategy_MACD_v03.py" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/vn.trader/ctaAlgo/strategy_TripleMa_v0.5.py" afterPath="$PROJECT_DIR$/vn.trader/ctaAlgo/strategy_TripleMa_v0.5.py" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
@@ -20,11 +17,31 @@
   <component name="ExecutionTargetManager" SELECTED_TARGET="default_target" />
   <component name="FileEditorManager">
     <leaf SIDE_TABS_SIZE_LIMIT_KEY="300">
-      <file leaf-file-name="strategy_MACD_v05.py" pinned="false" current-in-tab="true">
+      <file leaf-file-name="strategy_MACD_v05.py" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/vn.trader/ctaAlgo/strategy_MACD_v05.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="441">
-              <caret line="460" column="22" lean-forward="true" selection-start-line="460" selection-start-column="22" selection-end-line="460" selection-end-column="22" />
+            <state relative-caret-position="9765">
+              <caret line="469" column="0" lean-forward="false" selection-start-line="469" selection-start-column="0" selection-end-line="469" selection-end-column="0" />
+              <folding />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="strategy_MACD_v03.py" pinned="false" current-in-tab="true">
+        <entry file="file://$PROJECT_DIR$/vn.trader/ctaAlgo/strategy_MACD_v03.py">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="2296">
+              <caret line="407" column="26" lean-forward="true" selection-start-line="407" selection-start-column="26" selection-end-line="407" selection-end-column="26" />
+              <folding />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="strategy_TripleMa_v0.5.py" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/vn.trader/ctaAlgo/strategy_TripleMa_v0.5.py">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="254">
+              <caret line="385" column="26" lean-forward="false" selection-start-line="385" selection-start-column="26" selection-end-line="385" selection-end-column="26" />
               <folding />
             </state>
           </provider>
@@ -44,6 +61,10 @@
     <option name="CHANGED_PATHS">
       <list>
         <option value="$PROJECT_DIR$/vn.trader/ctaAlgo/strategy_MACD_v05.py" />
+        <option value="$PROJECT_DIR$/vn.trader/ctaAlgo/CTA_setting.json" />
+        <option value="$PROJECT_DIR$/vn.trader/ctaAlgo/strategy_TripleMa_v0.5.py" />
+        <option value="$PROJECT_DIR$/vn.trader/ctaAlgo/strategy_MACD_v03_1.py" />
+        <option value="$PROJECT_DIR$/vn.trader/ctaAlgo/strategy_MACD_v03.py" />
       </list>
     </option>
   </component>
@@ -71,8 +92,6 @@
       <foldersAlwaysOnTop value="true" />
     </navigator>
     <panes>
-      <pane id="Scope" />
-      <pane id="Scratches" />
       <pane id="ProjectPane">
         <subPane>
           <PATH>
@@ -119,11 +138,18 @@
           </PATH>
         </subPane>
       </pane>
+      <pane id="Scope" />
+      <pane id="Scratches" />
     </panes>
   </component>
   <component name="PropertiesComponent">
     <property name="settings.editor.selected.configurable" value="reference.settingsdialog.IDE.editor.colors.Font" />
-    <property name="last_opened_file_path" value="$USER_HOME$/Anaconda2/python.exe" />
+    <property name="last_opened_file_path" value="$PROJECT_DIR$" />
+  </component>
+  <component name="RecentsManager">
+    <key name="CopyFile.RECENT_KEYS">
+      <recent name="C:\xuye\vnpy-app\vn.trader\ctaAlgo" />
+    </key>
   </component>
   <component name="RunDashboard">
     <option name="ruleStates">
@@ -151,6 +177,60 @@
       <option name="ADD_SOURCE_ROOTS" value="true" />
       <module name="vnpy-app" />
       <option name="SCRIPT_NAME" value="$PROJECT_DIR$/vn.trader/ctaAlgo/strategy_MACD_v03.py" />
+      <option name="PARAMETERS" value="" />
+      <option name="SHOW_COMMAND_LINE" value="false" />
+      <option name="EMULATE_TERMINAL" value="false" />
+      <method />
+    </configuration>
+    <configuration default="false" name="strategy_MACD_v02" type="PythonConfigurationType" factoryName="Python" temporary="true">
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+      </envs>
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/vn.trader/ctaAlgo" />
+      <option name="IS_MODULE_SDK" value="true" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <module name="vnpy-app" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/vn.trader/ctaAlgo/strategy_MACD_v02.py" />
+      <option name="PARAMETERS" value="" />
+      <option name="SHOW_COMMAND_LINE" value="false" />
+      <option name="EMULATE_TERMINAL" value="false" />
+      <method />
+    </configuration>
+    <configuration default="false" name="vtMain" type="PythonConfigurationType" factoryName="Python" temporary="true">
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+      </envs>
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/vn.trader" />
+      <option name="IS_MODULE_SDK" value="true" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <module name="vnpy-app" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/vn.trader/vtMain.py" />
+      <option name="PARAMETERS" value="" />
+      <option name="SHOW_COMMAND_LINE" value="false" />
+      <option name="EMULATE_TERMINAL" value="false" />
+      <method />
+    </configuration>
+    <configuration default="false" name="strategy_TripleMa_v0.5" type="PythonConfigurationType" factoryName="Python" temporary="true">
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+      </envs>
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/vn.trader/ctaAlgo" />
+      <option name="IS_MODULE_SDK" value="true" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <module name="vnpy-app" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/vn.trader/ctaAlgo/strategy_TripleMa_v0.5.py" />
       <option name="PARAMETERS" value="" />
       <option name="SHOW_COMMAND_LINE" value="false" />
       <option name="EMULATE_TERMINAL" value="false" />
@@ -221,12 +301,18 @@
       <option name="_new_targetType" value="&quot;PATH&quot;" />
       <method />
     </configuration>
-    <list size="1">
+    <list size="4">
       <item index="0" class="java.lang.String" itemvalue="Python.strategy_MACD_v03" />
+      <item index="1" class="java.lang.String" itemvalue="Python.strategy_MACD_v02" />
+      <item index="2" class="java.lang.String" itemvalue="Python.vtMain" />
+      <item index="3" class="java.lang.String" itemvalue="Python.strategy_TripleMa_v0.5" />
     </list>
     <recent_temporary>
-      <list size="1">
+      <list size="4">
         <item index="0" class="java.lang.String" itemvalue="Python.strategy_MACD_v03" />
+        <item index="1" class="java.lang.String" itemvalue="Python.strategy_TripleMa_v0.5" />
+        <item index="2" class="java.lang.String" itemvalue="Python.vtMain" />
+        <item index="3" class="java.lang.String" itemvalue="Python.strategy_MACD_v02" />
       </list>
     </recent_temporary>
   </component>
@@ -247,16 +333,16 @@
     <frame x="-8" y="-8" width="1456" height="876" extended-state="6" />
     <editor active="true" />
     <layout>
-      <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.21776505" sideWeight="0.5" order="0" side_tool="false" content_ui="combo" />
+      <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.16260745" sideWeight="0.5" order="0" side_tool="false" content_ui="combo" />
       <window_info id="TODO" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="6" side_tool="false" content_ui="tabs" />
       <window_info id="Event Log" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="7" side_tool="true" content_ui="tabs" />
+      <window_info id="Run" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.47978437" sideWeight="0.5" order="2" side_tool="false" content_ui="tabs" />
       <window_info id="Version Control" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.32884097" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
       <window_info id="Python Console" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
-      <window_info id="Run" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.66307276" sideWeight="0.5" order="2" side_tool="false" content_ui="tabs" />
       <window_info id="Structure" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.25" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
       <window_info id="Terminal" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
-      <window_info id="Favorites" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="2" side_tool="true" content_ui="tabs" />
       <window_info id="Debug" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.39892185" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
+      <window_info id="Favorites" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="2" side_tool="true" content_ui="tabs" />
       <window_info id="Data View" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
       <window_info id="Cvs" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.25" sideWeight="0.5" order="4" side_tool="false" content_ui="tabs" />
       <window_info id="Message" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" />
@@ -295,6 +381,120 @@
     <watches-manager />
   </component>
   <component name="editorHistoryManager">
+    <entry file="file://$PROJECT_DIR$/vn.trader/ctaAlgo/strategy_MACD_v05.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="9765">
+          <caret line="469" column="0" lean-forward="false" selection-start-line="469" selection-start-column="0" selection-end-line="469" selection-end-column="0" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/vn.trader/ctaAlgo/strategy_MACD_v03.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="8484">
+          <caret line="408" column="29" lean-forward="true" selection-start-line="408" selection-start-column="29" selection-end-line="408" selection-end-column="29" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/vn.trader/ctaAlgo/CTA_setting.json">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="189">
+          <caret line="9" column="1" lean-forward="true" selection-start-line="9" selection-start-column="1" selection-end-line="9" selection-end-column="1" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/vn.trader/vtMain.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="693">
+          <caret line="42" column="0" lean-forward="false" selection-start-line="42" selection-start-column="0" selection-end-line="42" selection-end-column="0" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/vn.trader/ctaAlgo/strategy_TripleMa_v0.5.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="7938">
+          <caret line="383" column="23" lean-forward="true" selection-start-line="383" selection-start-column="23" selection-end-line="383" selection-end-column="23" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/vn.trader/vtEngine.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="462">
+          <caret line="36" column="26" lean-forward="true" selection-start-line="36" selection-start-column="26" selection-end-line="36" selection-end-column="26" />
+          <folding>
+            <element signature="e#19#32#0" expanded="false" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/vn.trader/ctaAlgo/strategy_MACD_v05.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="9765">
+          <caret line="469" column="0" lean-forward="true" selection-start-line="469" selection-start-column="0" selection-end-line="469" selection-end-column="0" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/vn.trader/ctaAlgo/strategy_MACD_v03.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="8484">
+          <caret line="408" column="29" lean-forward="true" selection-start-line="408" selection-start-column="29" selection-end-line="408" selection-end-column="29" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/vn.trader/ctaAlgo/CTA_setting.json">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="189">
+          <caret line="9" column="1" lean-forward="true" selection-start-line="9" selection-start-column="1" selection-end-line="9" selection-end-column="1" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/vn.trader/ctaAlgo/strategy_TripleMa_v0.5.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="7938">
+          <caret line="383" column="23" lean-forward="true" selection-start-line="383" selection-start-column="23" selection-end-line="383" selection-end-column="23" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/vn.trader/vtMain.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="189">
+          <caret line="18" column="30" lean-forward="true" selection-start-line="18" selection-start-column="30" selection-end-line="18" selection-end-column="30" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/vn.trader/ctaAlgo/strategy_MACD_v05.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="9639">
+          <caret line="459" column="26" lean-forward="true" selection-start-line="459" selection-start-column="26" selection-end-line="459" selection-end-column="26" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/vn.trader/ctaAlgo/strategy_TripleMa_v0.5.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="0">
+          <caret line="0" column="0" lean-forward="false" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/vn.trader/ctaAlgo/strategy_MACD_v05.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="0">
+          <caret line="0" column="0" lean-forward="false" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
     <entry file="file://$PROJECT_DIR$/vn.trader/ctaAlgo/strategy_MACD_v05.py">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="0">
@@ -354,24 +554,91 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/vn.trader/ctaAlgo/strategy_MACD_v03.py">
+    <entry file="file://$PROJECT_DIR$/vn.trader/ctaAlgo/strategy_MACD_v02.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="382">
-          <caret line="412" column="41" lean-forward="true" selection-start-line="412" selection-start-column="41" selection-end-line="412" selection-end-column="41" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/vn.trader/ctaAlgo/strategy_MACD_v04.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="21">
-          <caret line="22" column="0" lean-forward="false" selection-start-line="22" selection-start-column="0" selection-end-line="22" selection-end-column="0" />
+        <state relative-caret-position="231">
+          <caret line="15" column="25" lean-forward="true" selection-start-line="15" selection-start-column="25" selection-end-line="15" selection-end-column="25" />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/vn.trader/ctaAlgo/strategy_MACD_v05.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="441">
-          <caret line="460" column="22" lean-forward="true" selection-start-line="460" selection-start-column="22" selection-end-line="460" selection-end-column="22" />
+        <state relative-caret-position="9765">
+          <caret line="469" column="0" lean-forward="false" selection-start-line="469" selection-start-column="0" selection-end-line="469" selection-end-column="0" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/vn.trader/vtEngine.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="777">
+          <caret line="37" column="0" lean-forward="true" selection-start-line="37" selection-start-column="0" selection-end-line="37" selection-end-column="0" />
+          <folding>
+            <element signature="e#19#32#0" expanded="false" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/vn.trader/vtMain.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="371">
+          <caret line="42" column="0" lean-forward="false" selection-start-line="42" selection-start-column="0" selection-end-line="42" selection-end-column="0" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/vn.trader/ctaAlgo/CTA_setting.json">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="189">
+          <caret line="9" column="1" lean-forward="true" selection-start-line="9" selection-start-column="1" selection-end-line="9" selection-end-column="1" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/vn.trader/ctaAlgo/ctaPosition.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="301">
+          <caret line="24" column="0" lean-forward="true" selection-start-line="24" selection-start-column="0" selection-end-line="24" selection-end-column="0" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/vn.trader/ctaAlgo/ctaTemplate.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="259">
+          <caret line="59" column="0" lean-forward="true" selection-start-line="59" selection-start-column="0" selection-end-line="59" selection-end-column="0" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/vn.trader/ctaAlgo/strategy_MACD_v04.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="-5964">
+          <caret line="22" column="0" lean-forward="false" selection-start-line="22" selection-start-column="0" selection-end-line="22" selection-end-column="0" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/vn.trader/ctaAlgo/strategy_TripleMa_v0.5.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="254">
+          <caret line="385" column="26" lean-forward="false" selection-start-line="385" selection-start-column="26" selection-end-line="385" selection-end-column="26" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/vn.trader/ctaAlgo/strategy_MACD_v03_1.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="120">
+          <caret line="319" column="27" lean-forward="false" selection-start-line="319" selection-start-column="27" selection-end-line="319" selection-end-column="27" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/vn.trader/ctaAlgo/strategy_MACD_v03.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="2296">
+          <caret line="407" column="26" lean-forward="true" selection-start-line="407" selection-start-column="26" selection-end-line="407" selection-end-column="26" />
           <folding />
         </state>
       </provider>

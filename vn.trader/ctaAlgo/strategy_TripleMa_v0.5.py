@@ -812,7 +812,7 @@ def testRbByBar():
     # 设置回测用的数据结束日期
     engine.setEndDate('20161231')
 
-    engine.setDatabase(dbName='stockcn',symbol='rb')
+    engine.setDatabase(dbName='stockcn',symbol='RB')
 
     # 设置产品相关参数
     engine.setSlippage(0)     # 1跳（0.1）2跳0.2
@@ -840,7 +840,7 @@ def testRbByBar():
     engine.barTimeInterval = 300    # bar的周期秒数，用于csv文件自动减时间
 
     # 开始跑回测
-    engine.runBackTestingWithBarFile(os.getcwd() + '/cache/RB88_20160101_20161231_M5.csv')
+    engine.runBackTestingWithBarFile(os.getcwd() + '/cache/RB99_20100101_20170605_15m.csv')
 
     # 显示回测结果
     engine.showBacktestingResult()
