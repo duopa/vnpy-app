@@ -701,7 +701,7 @@ def testRbByBar():
     settings['name'] = 'MACD'
     settings['mode'] = 'bar'
     settings['backtesting'] = True
-    settings['percentLimit'] = 30
+    settings['percentLimit'] = 50
 
     # 在引擎中创建策略对象
     engine.initStrategy(Strategy_MACD_01, setting=settings)
@@ -711,9 +711,9 @@ def testRbByBar():
 
     # 启用实时计算净值模式REALTIME_MODE / FINAL_MODE 回测结束时统一计算模式
     engine.calculateMode = engine.REALTIME_MODE
-    engine.initCapital = 100000  # 设置期初资金
+    engine.initCapital = 200000  # 设置期初资金
 
-    engine.percentLimit = 40  # 设置资金使用上限比例(%)
+    engine.percentLimit = 50  # 设置资金使用上限比例(%)
     engine.barTimeInterval = 300  # bar的周期秒数，用于csv文件自动减时间
 
     # 开始跑回测

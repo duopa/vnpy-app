@@ -84,9 +84,9 @@ class Strategy_MACD_01(CtaTemplate):
             lineM15Setting = {}
             lineM15Setting['name'] = u'M15'  # k线名称
             lineM15Setting['barTimeInterval'] = 60 * 15  # K线的Bar时长
-            lineM15Setting['inputMacdFastPeriodLen'] = 12  # DIF快线
-            lineM15Setting['inputMacdSlowPeriodLen'] = 26  # DEA慢线
-            lineM15Setting['inputMacdSignalPeriodLen'] = 9  # MACD中绿柱
+            lineM15Setting['inputMacdFastPeriodLen'] = 36  # DIF快线
+            lineM15Setting['inputMacdSlowPeriodLen'] = 60  # DEA慢线
+            lineM15Setting['inputMacdSignalPeriodLen'] = 10  # MACD中绿柱
             lineM15Setting['inputPreLen'] = 20  # 前高/前低
             lineM15Setting['shortSymbol'] = self.shortSymbol
             self.lineM15 = CtaLineBar(self, self.onBarM15, lineM15Setting)
