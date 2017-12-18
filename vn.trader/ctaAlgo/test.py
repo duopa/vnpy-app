@@ -3,5 +3,4 @@
 @author：横纵19950206
 @usage：
 """
-from ctaBase import *
-print BZJ_DL['M']
+print(range(10))

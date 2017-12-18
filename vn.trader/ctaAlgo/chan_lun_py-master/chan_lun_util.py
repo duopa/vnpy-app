@@ -423,6 +423,15 @@ def validate_peak_and_bottom(merge_line_list, start_index, end_index):
     #  6.或许还需要判断顶底的区间是否不能重叠
     return True
 
+def run_test():
+    import pandas as pd
+    k_line_list =pd.read_csv('C:\\xuye\\vnpy-app\\vn.trader\ctaAlgo\cache\\000001.csv')
+    merge_line_list = find_peak_and_bottom(k_line_list, "down")
+
+    fen_bi(merge_line_list)
+
+
+run_test()
 '''
 def run_test():
     #  测试
@@ -440,4 +449,4 @@ def run_test():
 
     fen_bi(merge_line_list)
 '''
-#  run_test()
+# run_test()

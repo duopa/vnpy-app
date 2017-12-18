@@ -59,7 +59,6 @@ fenbi_result, final_result_array, fenbi_seq_list = fen_bi(merge_line_list)
 # print(merge_line_list[0:11])
 
 # 日线图，分笔可视化
-
 from chan_lun_util import *
 import matplotlib as mat
 import numpy as np
