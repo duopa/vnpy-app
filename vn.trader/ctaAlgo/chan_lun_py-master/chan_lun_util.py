@@ -29,14 +29,14 @@ class KLineDTO(object):
         return "(" + self.day.strftime('%Y-%m-%d %H:%M:%S') + ", " \
                + self.begin_time.strftime('%Y-%m-%d %H:%M:%S') + ", " \
                + self.end_time.strftime('%Y-%m-%d %H:%M:%S') + ")"
-            
+
 # --------------------------------
-            
+
 # 合并后的K线DTO            
 class MergeLineDTO(object):
 
     memberList = []
-    stick_num = 0
+    stick_num = 0  # 包含并且合并的k线
     begin_time = datetime.now()
     end_time = datetime.now()
     high = 0.0
@@ -59,7 +59,7 @@ class MergeLineDTO(object):
                + self.end_time.strftime('%Y-%m-%d %H:%M:%S') + ")"
 
 # --------------------------------
-        
+
 def set_peak_and_bottom_flag(merge_line_list):
     #  标记顶和底
     #  []MergeLineDTO
@@ -71,12 +71,12 @@ def set_peak_and_bottom_flag(merge_line_list):
 
     i = 1
     while i < len(merge_line_list)-1:
-        first_dto = merge_line_list[i-1]
-        middle_dto = merge_line_list[i]
-        last_dto = merge_line_list[i+1]
+        first_dto = merge_line_list[i-1]  # 1
+        middle_dto = merge_line_list[i]  # 2
+        last_dto = merge_line_list[i+1]  # 3
         if middle_dto.high > max(first_dto.high, last_dto.high) \
                 and middle_dto.low > max(first_dto.low, last_dto.low):
-            middle_dto.is_peak = 'Y'
+            middle_dto.is_peak = 'Y'  # is_peak列
 
         if middle_dto.high < min(first_dto.high, last_dto.high) \
                 and middle_dto.low < min(first_dto.low, last_dto.low):
@@ -130,13 +130,13 @@ def find_peak_and_bottom(k_line_list, begin_trend):  # []KLineDTO
     #  寻找真正的顶和底
     #  []KLineDTO, string
     k_line_dto = k_line_list[0]
-    
+
     # init for the first mergeLine
     merge_line_dto = MergeLineDTO(1, k_line_dto.begin_time, k_line_dto.end_time,
                                   k_line_dto.high, k_line_dto.low, 'N', 'N')
     merge_line_dto.member_list = []
     merge_line_dto.member_list.append(k_line_dto)
-    
+
     # new merge_line_list, and this is the return result
     merge_line_list = [merge_line_dto]
     trend = begin_trend
@@ -144,8 +144,10 @@ def find_peak_and_bottom(k_line_list, begin_trend):  # []KLineDTO
     i = 1
     while i < len(k_line_list):
 
-        today_k_line_dto = k_line_list[i]
+        today_k_line_dto = k_line_list[i]  # k_line_list仍然是dataframe格式
         last_m_line_dto = merge_line_list[len(merge_line_list)-1]
+        #TODO：这里的merge_line_list应该是一个固定值，但是这里进行比较的时候应该是相邻两根进行比较，应该是i-1
+        #TODO：同时merge_line_list是一个list，【】好像没用
         if is_inclusive(last_m_line_dto, today_k_line_dto.high, today_k_line_dto.low):
             #  假如存在包含关系,合并K线
             merge_k_line(last_m_line_dto, today_k_line_dto, trend)
